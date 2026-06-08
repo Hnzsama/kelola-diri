@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kelola Diri - Personal Operating System untuk Mahasiswa Aktif
 
-## Getting Started
+Aplikasi **Kelola Diri** adalah Personal Operating System yang dirancang khusus untuk mahasiswa aktif guna mengintegrasikan manajemen akademik, organisasi, karir/freelance, keuangan, habit, dan target jangka panjang.
 
-First, run the development server:
+---
+
+## 📚 Dokumentasi Desain Sistem
+
+Gunakan tautan di bawah ini untuk mengakses dokumen rancangan sistem lengkap:
+
+| No | Dokumen Rancangan | Deskripsi |
+| :---: | :--- | :--- |
+| **01** | [🚀 Product Vision](docs/01-vision.md) | Visi produk, pain points, MVP & future scope. |
+| **02** | [🧩 Domain Model](docs/02-domain-model.md) | Identifikasi domain bisnis dan relasi Mermaid. |
+| **03** | [📋 Feature Breakdown](docs/03-features.md) | Daftar fitur lengkap, user story, dan prioritasnya. |
+| **04** | [👥 User Personas](docs/04-user-personas.md) | Profil target pengguna & kebutuhan aplikasi. |
+| **05** | [🏗️ System Architecture](docs/05-architecture.md) | Rancangan arsitektur data & komponen sistem. |
+| **06** | [🔄 User Flow](docs/06-user-flow.md) | Diagram alur penggunaan 9 fitur utama. |
+| **07** | [📊 Entity Relationship Diagram (ERD)](docs/07-erd.md) | Skema relasi database (Mermaid ERD). |
+| **08** | [🗄️ Database Specification](docs/08-database-design.md) | Desain skema fisik tabel PostgreSQL detail. |
+| **09** | [🗺️ Sitemap](docs/09-sitemap.md) | Peta rute halaman aplikasi Next.js. |
+| **10** | [📁 Folder Structure](docs/10-folder-structure.md) | Desain folder berbasis fitur (Feature-Based). |
+| **11** | [📈 Development Roadmap](docs/11-roadmap.md) | Rencana pengembangan sistem dari Fase 1 - 5. |
+
+---
+
+## 🚀 Memulai Pengembangan (Getting Started)
+
+Jalankan server pengembangan lokal dengan langkah berikut:
 
 ```bash
 npm run dev
-# or
+# atau
 yarn dev
-# or
+# atau
 pnpm dev
-# or
+# atau
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka [http://localhost:3000](http://localhost:3000) pada browser Anda untuk melihat hasilnya.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
