@@ -8,26 +8,26 @@ Dokumen ini menjelaskan rancangan arsitektur teknis aplikasi **Kelola Diri** bes
 
 ```mermaid
 graph TD
-    User([User / Pengguna]) <-->|Interaksi UI| Browser[Browser / Client-side]
+    User(["User / Pengguna"]) -->|Interaksi UI| Browser["Browser / Client-side"]
     
-    subgraph Client [Client-side - React Client Components]
-        Browser <-->|Session Provider| ClientSession[NextAuth Client Session]
-        Browser <-->|Components| UI[Shadcn UI & Tailwind CSS]
+    subgraph Client ["Client-side - React Client Components"]
+        Browser -->|Session Provider| ClientSession["NextAuth Client Session"]
+        Browser -->|Components| UI["Shadcn UI & Tailwind CSS"]
     End
     
-    Browser <-->|HTTP Requests / Server Actions| NextServer[Next.js Server / Server-side]
+    Browser -->|HTTP Requests / Server Actions| NextServer["Next.js Server / Server-side"]
 
-    subgraph Server [Server-side - Next.js App Router]
-        NextServer <-->|Middleware| NextAuth[NextAuth Handler]
-        NextServer -->|Rendering| RSC[React Server Components]
-        NextServer -->|Business Logic| APILayer[API Layer / Server Actions]
+    subgraph Server ["Server-side - Next.js App Router"]
+        NextServer -->|Middleware| NextAuth["NextAuth Handler"]
+        NextServer -->|Rendering| RSC["React Server Components"]
+        NextServer -->|Business Logic| APILayer["API Layer / Server Actions"]
     End
     
-    APILayer <-->|Type-safe Queries| Prisma[Prisma ORM]
-    Prisma <-->|Connection Pool / pg| Database[(PostgreSQL Database)]
+    APILayer -->|Type-safe Queries| Prisma["Prisma ORM"]
+    Prisma -->|Connection Pool / pg| DB[("PostgreSQL Database")]
     
     style User fill:#f9f,stroke:#333,stroke-width:2px
-    style Database fill:#85C1E9,stroke:#333,stroke-width:2px
+    style DB fill:#85c1e9,stroke:#333,stroke-width:2px
 ```
 
 ---
