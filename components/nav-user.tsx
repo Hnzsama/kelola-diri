@@ -1,5 +1,8 @@
 "use client"
 
+import { signOut } from "next-auth/react"
+
+
 import {
   Avatar,
   AvatarFallback,
@@ -92,7 +95,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/login" })}>
               <HugeiconsIcon icon={Logout01Icon} strokeWidth={2} />
               Log out
             </DropdownMenuItem>
