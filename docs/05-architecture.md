@@ -39,12 +39,12 @@ graph TD
 
 ### 2.2. Browser (Client-Side)
 - **UI & Styling**: Menggunakan **Shadcn UI** yang dibangun di atas Radix Primitives untuk komponen UI yang aksesibel, dikombinasikan dengan **Tailwind CSS v4** untuk styling responsif, cepat, dan modern.
-- **Client Session**: **NextAuth Client Session Provider** digunakan untuk melacak status login pengguna di sisi klien secara aman tanpa perlu melakukan pemanggilan API manual.
+- **Client Session**: **NextAuth Client Session Provider** digunakan untuk melacak status login pengguna di sisi klien secara aman menggunakan sesi Google OAuth.
 - **React Client Components**: Bagian UI yang membutuhkan interaktivitas tinggi seperti form input keuangan, checklist habit harian, dan grafik interaktif.
 
 ### 2.3. Next.js Server (Server-Side)
 - **App Router Layout**: Menangani perutean aplikasi. Halaman dimuat secara default sebagai **React Server Components (RSC)** untuk mempercepat First Contentful Paint (FCP) dan mengurangi ukuran bundle JavaScript di sisi klien.
-- **NextAuth Middleware**: Bertindak sebagai penjaga gerbang (route protection). Middleware mendeteksi token sesi pengguna sebelum memberikan akses ke halaman dashboard internal. Jika tidak valid, pengguna otomatis diarahkan ke halaman login.
+- **NextAuth Middleware & Google Provider**: Bertindak sebagai penjaga gerbang (route protection) dan validator sesi. Aplikasi mengintegrasikan **Google Provider** di NextAuth untuk autentikasi tunggal berbasis Gmail. Jika sesi tidak valid, pengguna otomatis diarahkan ke halaman `/login`.
 
 ### 2.4. API Layer & Server Actions
 - **Server Actions**: Digunakan sebagai metode utama mutasi data (create, update, delete) langsung dari komponen React. Server Actions memberikan validasi tipe data bawaan dan meminimalkan kebutuhan penulisan endpoint REST API manual.

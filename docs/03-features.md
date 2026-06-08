@@ -20,6 +20,13 @@ Dokumen ini berisi spesifikasi fitur lengkap untuk aplikasi **Kelola Diri**, yan
 - **Scope**: **Future** (Phase 5)
 - **Prioritas**: **Medium**
 
+### Fitur 1.3: Google OAuth Single Sign-On (Gmail Login)
+- **Deskripsi**: Sistem masuk terpadu (SSO) menggunakan Google OAuth 2.0. Menghilangkan alur registrasi tradisional dan pengisian password manual demi keamanan dan kemudahan.
+- **User Story**: 
+  > *Sebagai mahasiswa, saya ingin masuk ke aplikasi dengan sekali klik menggunakan akun Gmail agar proses autentikasi cepat, praktis, dan aman.*
+- **Scope**: **MVP** (Phase 1)
+- **Prioritas**: **High**
+
 ---
 
 ## 2. Domain Akademik

@@ -12,8 +12,7 @@ graph TD
     
     %% Auth
     Root --> Auth[Autentikasi]
-    Auth --> Login["/auth/login"]
-    Auth --> Register["/auth/register"]
+    Auth --> Login["/login"]
     
     %% Dashboard
     Root --> Dashboard["/dashboard - Beranda Utama"]
@@ -61,8 +60,7 @@ graph TD
 ## 2. Deskripsi Halaman & Hak Akses
 
 1. **Halaman Publik (Public Routes)**:
-   - `/auth/login`: Halaman masuk pengguna dengan email & password.
-   - `/auth/register`: Halaman pendaftaran akun baru.
+   - `/login`: Halaman masuk pengguna menggunakan Google OAuth ("Sign in with Google").
 
 2. **Halaman Terproteksi (Private/Protected Routes - Membutuhkan Sesi NextAuth)**:
    - `/dashboard`: Berisi rangkuman agenda hari ini (Today's Agenda), sisa anggaran keuangan, grafik konsistensi habit, serta checklist tugas kuliah terdekat.

@@ -12,7 +12,6 @@ Dokumen ini mendefinisikan skema fisik database PostgreSQL untuk aplikasi **Kelo
 | `id` | VARCHAR(36) | No | Yes | No | gen_random_uuid() | ID unik UUID v4 |
 | `name` | VARCHAR(100) | No | No | No | - | Nama lengkap pengguna |
 | `email` | VARCHAR(150) | No | No | No | - | Email unik (untuk login) |
-| `password` | VARCHAR(255) | No | No | No | - | Hash password (bcrypt) |
 | `createdAt` | TIMESTAMP | No | No | No | CURRENT_TIMESTAMP | Tanggal pendaftaran |
 
 ---

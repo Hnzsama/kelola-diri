@@ -25,12 +25,12 @@ gantt
 ### Fase 1: Fondasi Keamanan & Manajemen Akademik (MVP)
 - **Goal**: Membangun sistem autentikasi pengguna yang aman, dasbor ringkasan harian, dan fitur manajemen akademik (jadwal kuliah, pelacak tugas, jadwal ujian) sebagai nilai guna utama aplikasi.
 - **Deliverables**:
-  - Pendaftaran akun (register) dan masuk log (login) berbasis **NextAuth** dengan enkripsi password.
+  - Masuk log (login) sekali klik terintegrasi **Google OAuth 2.0 (Gmail)** berbasis **NextAuth**.
   - Halaman **Dashboard Utama** yang menampilkan agenda perkuliahan hari ini, tugas yang akan segera tenggat, dan catatan cepat.
   - Modul Akademik: CRUD jadwal mata kuliah, pelacakan status tugas (Belum Mulai, Sedang Dikerjakan, Selesai), dan daftar jadwal ujian.
   - Editor **Catatan Markdown** sederhana untuk merangkum modul kuliah.
 - **Success Criteria**:
-  - Pengguna dapat mendaftar dan login dengan sukses, serta rute halaman privat terjaga dari pengguna yang belum login.
+  - Pengguna dapat masuk log menggunakan Gmail dengan lancar, rute halaman privat terproteksi dengan baik, dan data profil pengguna tersimpan otomatis saat pendaftaran pertama kali.
   - Pengguna dapat menginput jadwal kuliah semester baru dan melihat tugas kuliah terdekat diurutkan berdasarkan prioritas tenggat waktu secara real-time di dashboard.
 
 ---

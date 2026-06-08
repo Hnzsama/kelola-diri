@@ -12,7 +12,6 @@ erDiagram
         string id PK
         string name
         string email
-        string password
         datetime createdAt
     }
 

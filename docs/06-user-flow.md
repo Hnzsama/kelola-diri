@@ -4,37 +4,24 @@ Dokumen ini mendeskripsikan alur pengguna (User Flow) untuk 9 fitur utama aplika
 
 ---
 
-## 1. Alur Registrasi Akun Baru
+## 1. Alur Masuk & Pendaftaran Otomatis (Google OAuth Flow)
 ```mermaid
 graph TD
-    A[Pengguna di Halaman Register] --> B[Masukkan Nama, Email, & Password]
-    B --> C{Klik Tombol Register}
-    C --> D[Validasi Input Klien]
-    D -->|Valid| E[Kirim Data ke API Register]
-    D -->|Tidak Valid| F[Tampilkan Pesan Error Input]
-    E --> G{Cek Email di Database}
-    G -->|Sudah Terdaftar| H[Tampilkan Error: Email sudah digunakan]
-    G -->|Tersedia| I[Hash Password & Simpan User Baru]
-    I --> J[Tampilkan Sukses & Arahkan ke Halaman Login]
-    F --> B
-    H --> B
+    A["Pengguna di Halaman Login"] --> B["Klik Tombol 'Sign in with Google'"]
+    B --> C["Browser mengarahkan ke Google OAuth Consent Page"]
+    C --> D["Pengguna memilih/login akun Gmail"]
+    D --> E["Google memvalidasi kredensial"]
+    E -->|Berhasil| F["Callback ke NextAuth API Handler"]
+    E -->|Gagal / Batal| G["Arahkan kembali ke /login dengan Pesan Error"]
+    F --> H{"Cek apakah email sudah terdaftar di DB?"}
+    H -->|Belum Terdaftar| I["Buat Record User Baru menggunakan Data Google"]
+    H -->|Sudah Terdaftar| J["Gunakan Record User yang Ada"]
+    I --> K["NextAuth Membuat JWT Session"]
+    J --> K
+    K --> L["Arahkan ke Halaman /dashboard"]
+    G --> A
 ```
 
----
-
-## 2. Alur Login Pengguna
-```mermaid
-graph TD
-    A[Pengguna di Halaman Login] --> B[Masukkan Email & Password]
-    B --> C{Klik Tombol Login}
-    C --> D[Validasi NextAuth]
-    D -->|Gagal Validasi| E[Tampilkan Pesan Error Kredensial]
-    D -->|Berhasil| F[Buat Session Token JWT]
-    F --> G[Arahkan ke Dashboard Utama]
-    E --> B
-```
-
----
 
 ## 3. Alur Menambah Tugas Kuliah
 ```mermaid

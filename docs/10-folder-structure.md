@@ -10,13 +10,10 @@ Dokumen ini merancang struktur folder aplikasi **Kelola Diri** menggunakan pende
 kelola-diri/
 ├── app/                        # NEXT.JS APP ROUTER (Routing & Page Entry Points)
 │   ├── layout.tsx              # Root Layout (SessionProvider, ThemeProvider)
-│   ├── page.tsx                # Root Page (Redirect ke /dashboard atau /auth/login)
+│   ├── page.tsx                # Root Page (Redirect ke /dashboard atau /login)
 │   ├── globals.css             # CSS Global (Tailwind CSS v4)
-│   ├── auth/
-│   │   ├── login/
-│   │   │   └── page.tsx        # Halaman Login
-│   │   └── register/
-│   │       └── page.tsx        # Halaman Register
+│   ├── login/
+│   │   └── page.tsx            # Halaman Login (Google OAuth)
 │   ├── dashboard/
 │   │   └── page.tsx            # Halaman Dashboard Utama
 │   ├── academic/
@@ -54,9 +51,9 @@ kelola-diri/
 │
 ├── features/                   # LOGIKA BISNIS MODULAR & SPESIFIK FITUR (Feature-Based)
 │   ├── auth/                   # Fitur Autentikasi
-│   │   ├── components/         # Form login-form.tsx, register-form.tsx
-│   │   ├── services/           # Server Actions: auth-actions.ts (login, register)
-│   │   └── types/              # Definis tipe data: auth.types.ts
+│   │   ├── components/         # Google Sign-In Button, login-form.tsx
+│   │   ├── services/           # Google OAuth config & callback helpers
+│   │   └── types/              # auth.types.ts
 │   ├── dashboard/              # Fitur Ringkasan/Dashboard
 │   │   ├── components/         # agenda-summary.tsx, metric-cards.tsx
 │   │   └── services/           # Query data dashboard: dashboard-queries.ts
