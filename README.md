@@ -1,5 +1,9 @@
 # Kelola Diri - Personal Operating System untuk Mahasiswa Aktif
 
+<p align="center">
+  <img src="public/itachi.gif" alt="Itachi Uchiha" width="480px" />
+</p>
+
 Aplikasi **Kelola Diri** adalah Personal Operating System yang dirancang khusus untuk mahasiswa aktif guna mengintegrasikan manajemen akademik, organisasi, karir/freelance, keuangan, habit, dan target jangka panjang.
 
 ---
