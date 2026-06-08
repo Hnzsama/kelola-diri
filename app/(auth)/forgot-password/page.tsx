@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,38 +12,27 @@ import {
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 
-export function RegisterForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
-  const router = useRouter()
-  const [name, setName] = useState("")
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ email }),
       })
 
       const data = await res.json()
 
       if (!res.ok) {
-        toast.error(data.error || "Gagal mendaftarkan akun")
+        toast.error(data.error || "Gagal memproses permintaan")
       } else {
-        toast.success(data.success || "Registrasi berhasil! Silakan cek email Anda untuk verifikasi.")
-        setName("")
+        toast.success(data.success || "Instruksi pemulihan telah dikirim ke email Anda.")
         setEmail("")
-        setPassword("")
-        setTimeout(() => {
-          router.push("/login")
-        }, 3000)
       }
     } catch (error) {
       toast.error("Terjadi kesalahan sistem")
@@ -54,7 +42,7 @@ export function RegisterForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className="flex flex-col gap-6">
       <form onSubmit={handleSubmit}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
@@ -72,23 +60,11 @@ export function RegisterForm({
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold">Daftar Kelola Diri</h1>
+            <h1 className="text-2xl font-bold">Lupa Kata Sandi</h1>
             <FieldDescription>
-              Sudah punya akun? <a href="/login" className="underline text-primary">Masuk</a>
+              Masukkan email terdaftar Anda di bawah ini. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi.
             </FieldDescription>
           </div>
-
-          <Field>
-            <FieldLabel htmlFor="name">Nama Lengkap</FieldLabel>
-            <Input
-              id="name"
-              type="text"
-              placeholder="Budi Santoso"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </Field>
 
           <Field>
             <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -103,22 +79,16 @@ export function RegisterForm({
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="password">Kata Sandi</FieldLabel>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Minimal 8 karakter"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </Field>
-
-          <Field>
             <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? "Mendaftarkan..." : "Daftar Akun"}
+              {isLoading ? "Mengirim..." : "Kirim Tautan Pemulihan"}
             </Button>
           </Field>
+
+          <div className="text-center text-sm">
+            <a href="/login" className="underline text-muted-foreground hover:text-primary">
+              Kembali ke Halaman Login
+            </a>
+          </div>
         </FieldGroup>
       </form>
     </div>

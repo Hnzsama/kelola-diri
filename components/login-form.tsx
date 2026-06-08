@@ -61,6 +61,20 @@ export function LoginForm({
       <form onSubmit={handleSubmit}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
+            <div className="flex size-8 items-center justify-center bg-primary text-primary-foreground border-2 border-border shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="size-4"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
             <h1 className="text-2xl font-bold">Kelola Diri</h1>
             <FieldDescription>
               Belum punya akun? <a href="/register" className="underline text-primary">Daftar sekarang</a>
