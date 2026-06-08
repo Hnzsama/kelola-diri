@@ -12,45 +12,45 @@ graph TD
     
     %% Auth
     Root --> Auth[Autentikasi]
-    Auth --> Login[/auth/login]
-    Auth --> Register[/auth/register]
+    Auth --> Login["/auth/login"]
+    Auth --> Register["/auth/register"]
     
     %% Dashboard
-    Root --> Dashboard[/dashboard - Beranda Utama]
+    Root --> Dashboard["/dashboard - Beranda Utama"]
     
     %% Akademik
-    Root --> Akademik[/academic - Modul Akademik]
-    Akademik --> MK[/academic/courses - Mata Kuliah]
-    Akademik --> Tugas[/academic/assignments - Tugas Kuliah]
-    Akademik --> Ujian[/academic/exams - Jadwal Ujian]
+    Root --> Akademik["/academic - Modul Akademik"]
+    Akademik --> MK["/academic/courses - Mata Kuliah"]
+    Akademik --> Tugas["/academic/assignments - Tugas Kuliah"]
+    Akademik --> Ujian["/academic/exams - Jadwal Ujian"]
     
     %% Organisasi
-    Root --> Organisasi[/organizations - Modul Organisasi]
-    Organisasi --> OrgList[/organizations - Daftar Organisasi]
-    Organisasi --> OrgDetail[/organizations/:id - Detail Organisasi]
-    OrgDetail --> Proker[/organizations/:id/programs - Program Kerja]
-    OrgDetail --> Event[/organizations/:id/events - Jadwal Rapat/Event]
+    Root --> Organisasi["/organizations - Modul Organisasi"]
+    Organisasi --> OrgList["/organizations - Daftar Organisasi"]
+    Organisasi --> OrgDetail["/organizations/:id - Detail Organisasi"]
+    OrgDetail --> Proker["/organizations/:id/programs - Program Kerja"]
+    OrgDetail --> Event["/organizations/:id/events - Jadwal Rapat/Event"]
     
     %% Karier
-    Root --> Karier[/career - Modul Karier/Freelance]
-    Karier --> Klien[/career/clients - Manajemen Klien]
-    Karier --> Proyek[/career/projects - Manajemen Proyek]
+    Root --> Karier["/career - Modul Karier/Freelance"]
+    Karier --> Klien["/career/clients - Manajemen Klien"]
+    Karier --> Proyek["/career/projects - Manajemen Proyek"]
     
     %% Keuangan
-    Root --> Keuangan[/finance - Modul Keuangan]
-    Keuangan --> Transaksi[/finance/transactions - Riwayat Transaksi]
+    Root --> Keuangan["/finance - Modul Keuangan"]
+    Keuangan --> Transaksi["/finance/transactions - Riwayat Transaksi"]
     
     %% Habit
-    Root --> Habit[/habits - Habit Tracker]
+    Root --> Habit["/habits - Habit Tracker"]
     
     %% Goal
-    Root --> Goal[/goals - Goal Tracker]
+    Root --> Goal["/goals - Goal Tracker"]
     
     %% Notes
-    Root --> Notes[/notes - Markdown Notes]
+    Root --> Notes["/notes - Markdown Notes"]
     
     %% Settings
-    Root --> Settings[/settings - Pengaturan Akun]
+    Root --> Settings["/settings - Pengaturan Akun"]
     
     style Root fill:#f9f,stroke:#333,stroke-width:2px
     style Dashboard fill:#bbf,stroke:#333,stroke-width:1px
