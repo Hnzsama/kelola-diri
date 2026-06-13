@@ -1,6 +1,11 @@
 import Link from "next/link";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
-export default function Home() {
+export default async function Home() {
+  const session = await getServerSession(authOptions);
+  const isLoggedIn = !!session;
+
   return (
     <div className="min-h-screen bg-[#f4f4f5] dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 font-mono transition-colors">
       {/* Navbar */}
@@ -10,16 +15,26 @@ export default function Home() {
             ⚡ Kelola Diri
           </Link>
           <div className="flex gap-4">
-            <Link href="/login">
-              <button className="px-4 py-2 border-2 border-zinc-900 dark:border-white font-extrabold text-xs uppercase bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-[1px] active:translate-y-[1px] transition-all cursor-pointer">
-                Masuk
-              </button>
-            </Link>
-            <Link href="/register">
-              <button className="px-4 py-2 border-2 border-zinc-900 bg-primary text-primary-foreground font-extrabold text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-[1px] active:translate-y-[1px] transition-all cursor-pointer">
-                Daftar
-              </button>
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard">
+                <button className="px-4 py-2 border-2 border-zinc-900 bg-primary text-primary-foreground font-extrabold text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-[1px] active:translate-y-[1px] transition-all cursor-pointer">
+                  Ke Dashboard
+                </button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/login">
+                  <button className="px-4 py-2 border-2 border-zinc-900 dark:border-white font-extrabold text-xs uppercase bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-[1px] active:translate-y-[1px] transition-all cursor-pointer">
+                    Masuk
+                  </button>
+                </Link>
+                <Link href="/register">
+                  <button className="px-4 py-2 border-2 border-zinc-900 bg-primary text-primary-foreground font-extrabold text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-[1px] active:translate-y-[1px] transition-all cursor-pointer">
+                    Daftar
+                  </button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -35,17 +50,27 @@ export default function Home() {
         <p className="max-w-2xl mx-auto text-sm sm:text-base text-zinc-600 dark:text-zinc-400 mb-8 leading-relaxed">
           Satu-satunya asisten personal mahasiswa yang menyatukan jadwal akademik, agenda organisasi, kebiasaan harian, target impian, dan diagnosa keuangan dengan Asisten Email berkop kop surat ala Gen-Z! 😎🔥
         </p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <Link href="/register">
-            <button className="w-full sm:w-auto px-8 py-4 bg-primary text-primary-foreground border-4 border-zinc-900 font-extrabold text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer">
-              Mulai Kelola Sekarang
-            </button>
-          </Link>
-          <Link href="/login">
-            <button className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white border-4 border-zinc-900 dark:border-white font-extrabold text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] transition-all cursor-pointer">
-              Dashboard Utama
-            </button>
-          </Link>
+        <div className="flex justify-center">
+          {isLoggedIn ? (
+            <Link href="/dashboard">
+              <button className="w-full sm:w-auto px-8 py-4 bg-primary text-primary-foreground border-4 border-zinc-900 font-extrabold text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer">
+                Kembali ke Dashboard Utama 🚀
+              </button>
+            </Link>
+          ) : (
+            <div className="flex flex-col sm:flex-row justify-center gap-4 w-full sm:w-auto">
+              <Link href="/register" className="w-full sm:w-auto">
+                <button className="w-full sm:w-auto px-8 py-4 bg-primary text-primary-foreground border-4 border-zinc-900 font-extrabold text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer">
+                  Mulai Kelola Sekarang
+                </button>
+              </Link>
+              <Link href="/login" className="w-full sm:w-auto">
+                <button className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white border-4 border-zinc-900 dark:border-white font-extrabold text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] transition-all cursor-pointer">
+                  Dashboard Utama
+                </button>
+              </Link>
+            </div>
+          )}
         </div>
       </header>
 
