@@ -3,6 +3,8 @@
 import { signOut, useSession } from "next-auth/react"
 
 
+import Link from "next/link"
+
 import {
   Avatar,
   AvatarFallback,
@@ -36,7 +38,13 @@ export function NavUser({
   }
 }) {
   const { data: session } = useSession()
-  const { isMobile } = useSidebar()
+  const { setOpenMobile, isMobile } = useSidebar()
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+  }
 
   const activeUser = {
     name: session?.user?.name || user.name,
@@ -94,10 +102,10 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <a href="/dashboard/settings" className="flex items-center gap-2 w-full cursor-pointer">
+                <Link href="/dashboard/settings" onClick={handleLinkClick} className="flex items-center gap-2 w-full cursor-pointer">
                   <HugeiconsIcon icon={UserCircle02Icon} strokeWidth={2} />
                   <span>Profile</span>
-                </a>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <HugeiconsIcon icon={CreditCardIcon} strokeWidth={2} />

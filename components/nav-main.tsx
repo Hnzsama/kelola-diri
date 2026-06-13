@@ -10,6 +10,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { PlusSignCircleIcon, Mail01Icon } from "@hugeicons/core-free-icons"
@@ -34,6 +35,14 @@ export function NavMain({
     "Habit Tracker": true,
     "Goal & Life Planning": true,
   })
+
+  const { setOpenMobile, isMobile } = useSidebar()
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+  }
 
   // Auto-expand menu containing the active page
   useEffect(() => {
@@ -114,7 +123,7 @@ export function NavMain({
                   </SidebarMenuButton>
                 ) : (
                   <SidebarMenuButton asChild tooltip={item.title}>
-                    <Link href={item.url}>
+                    <Link href={item.url} onClick={handleLinkClick}>
                       {item.icon}
                       <span>{item.title}</span>
                     </Link>
@@ -129,6 +138,7 @@ export function NavMain({
                         <Link
                           key={subItem.title}
                           href={subItem.url}
+                          onClick={handleLinkClick}
                           className={`text-xs font-semibold py-1 px-2 rounded-[var(--radius)] transition-colors uppercase tracking-wider block ${
                             isActive
                               ? "text-primary bg-primary/10 font-bold border-l-2 border-primary -ml-[2px] rounded-l-none"

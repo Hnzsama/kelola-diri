@@ -14,6 +14,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { DashboardSquare01Icon, ChartHistogramIcon, UserGroupIcon, Settings05Icon, HelpCircleIcon, SearchIcon, Analytics01Icon, CommandIcon, Target02Icon, CreditCardIcon } from "@hugeicons/core-free-icons"
@@ -200,6 +201,14 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { setOpenMobile, isMobile } = useSidebar()
+
+  const handleLogoClick = () => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+  }
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -209,7 +218,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
-              <Link href="/dashboard">
+              <Link href="/dashboard" onClick={handleLogoClick}>
                 <HugeiconsIcon icon={CommandIcon} strokeWidth={2} className="size-5!" />
                 <span className="text-base font-semibold">Kelola Diri</span>
               </Link>
