@@ -31,10 +31,20 @@ model User {
   sessions      Session[]
 
   // Business Modules Relations
-  courses       Course[]
-  memberships   OrganizationMember[]
-  orgTasks      OrganizationTask[]
-  habits        Habit[]
+  courses         Course[]
+  semesters       Semester[]
+  memberships     OrganizationMember[]
+  orgEvents       OrganizationEvent[]
+  orgTasks        OrganizationTask[]
+  habits          Habit[]
+  habitCategories HabitCategory[]
+  goals           Goal[]
+  goalReviews     GoalProgressReview[]
+  transactions      Transaction[]
+  budgets           Budget[]
+  financialGoals    FinancialGoal[]
+  financeCategories FinanceCategory[]
+  notificationPreference NotificationPreference?
 }
 
 model Account {
@@ -86,20 +96,22 @@ model PasswordResetToken {
 // ==========================================
 
 model Course {
-  id        String   @id @default(uuid())
-  userId    String
-  name      String
-  code      String?
-  lecturer  String?
-  day       String
-  startTime String   // Format "HH:MM"
-  endTime   String   // Format "HH:MM"
-  room      String?
-  credits   Int      @default(2)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(uuid())
+  userId     String
+  semesterId String?
+  name       String
+  code       String?
+  lecturer   String?
+  day        String
+  startTime  String   // Format "HH:MM"
+  endTime    String   // Format "HH:MM"
+  room       String?
+  credits    Int      @default(2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  semester    Semester?    @relation(fields: [semesterId], references: [id], onDelete: SetNull)
   assignments Assignment[]
   exams       Exam[]
 }
@@ -131,6 +143,18 @@ model Exam {
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
 
+model Semester {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courses Course[]
+}
+
 // ==========================================
 // 3. MODUL ORGANISASI (ORGANIZATION)
 // ==========================================
@@ -139,6 +163,8 @@ model Organization {
   id          String   @id @default(uuid())
   name        String
   description String?
+  period      String?  // e.g., "2025–2026"
+  logoIcon    String   @default("🏢")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -150,7 +176,9 @@ model OrganizationMember {
   id             String   @id @default(uuid())
   userId         String
   organizationId String
-  role           String   @default("MEMBER") // e.g., "CHAIR", "SECRETARY", "TREASURER", "MEMBER"
+  role           String   @default("MEMBER") // "CHAIR", "SECRETARY", "TREASURER", "MEMBER"
+  position       String?  // Jabatan spesifik, e.g. "Staff IT", "Koordinator Media"
+  period         String?  // e.g., "2025–2026"
   joinedAt       DateTime @default(now())
 
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -162,30 +190,36 @@ model OrganizationMember {
 model OrganizationEvent {
   id             String   @id @default(uuid())
   organizationId String
+  userId         String   // creator / owner
   title          String
   description    String?
+  type           String   @default("OTHER") // "MEETING", "EVENT", "SEMINAR", "PROKER", "OTHER"
   date           DateTime
+  endDate        DateTime?
   location       String?
+  isArchived     Boolean  @default(false)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  creator      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   tasks        OrganizationTask[]
 }
 
 model OrganizationTask {
   id               String    @id @default(uuid())
-  eventId          String
-  assignedToUserId String
+  eventId          String?
+  userId           String    // owner: the logged-in user who created/tracks this task
   title            String
   description      String?
   dueDate          DateTime?
-  status           String    @default("TODO") // "TODO", "IN_PROGRESS", "DONE"
+  priority         String    @default("MEDIUM") // "LOW", "MEDIUM", "HIGH"
+  status           String    @default("TODO")   // "TODO", "IN_PROGRESS", "DONE"
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  event      OrganizationEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  assignedTo User              @relation(fields: [assignedToUserId], references: [id], onDelete: Restrict)
+  event  OrganizationEvent? @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  user   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // ==========================================
@@ -197,12 +231,14 @@ model Habit {
   userId      String
   name        String
   description String?
-  frequency   String   @default("DAILY") // "DAILY", "WEEKLY"
+  categoryId  String?
+  isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  logs HabitLog[]
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category HabitCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  logs     HabitLog[]
 }
 
 model HabitLog {
@@ -215,3 +251,144 @@ model HabitLog {
 
   @@unique([habitId, date])
 }
+
+model HabitCategory {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  icon      String   @default("📌")
+  color     String   @default("bg-muted")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habits Habit[]
+
+  @@unique([userId, name])
+}
+
+model Goal {
+  id          String               @id @default(uuid())
+  userId      String
+  title       String               // "IPK 3.75", "Menjadi Ketua Divisi IT"
+  description String?
+  category    String               // "ACADEMIC", "ORGANIZATION", "HABIT", "PERSONAL", "CAREER"
+  status      String               @default("ACTIVE") // "ACTIVE", "ACHIEVED", "PAUSED", "DROPPED"
+  progress    Int                  @default(0) // 0–100
+  targetDate  DateTime?
+  emoji       String               @default("🎯")
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  milestones  GoalMilestone[]
+  reviews     GoalProgressReview[]
+  financialGoals FinancialGoal[]
+}
+
+model GoalMilestone {
+  id          String   @id @default(uuid())
+  goalId      String
+  title       String   // "Selesaikan Semester 5", "Submit Proposal TA"
+  isCompleted Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  goal        Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+}
+
+model GoalProgressReview {
+  id        String   @id @default(uuid())
+  goalId    String
+  userId    String
+  month     Int      // 1–12
+  year      Int
+  progress  Int      // snapshot progress bulan ini
+  note      String?  // catatan refleksi
+  createdAt DateTime @default(now())
+
+  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model FinanceCategory {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  icon      String   @default("💰")
+  color     String   @default("bg-muted text-muted-foreground border-border/30")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@unique([userId, name])
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  userId      String
+  type        String   // "INCOME", "EXPENSE"
+  amount      Float
+  categoryId  String
+  date        DateTime @default(now())
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category FinanceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+}
+
+model Budget {
+  id         String   @id @default(uuid())
+  userId     String
+  categoryId String
+  amount     Float    // Limit batas pengeluaran
+  month      Int      // 1–12
+  year      Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category FinanceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId, month, year])
+}
+
+model FinancialGoal {
+  id            String    @id @default(uuid())
+  userId        String
+  title         String    // "Beli Laptop Baru", "Biaya Wisuda"
+  targetAmount  Float
+  currentAmount Float     @default(0)
+  deadline      DateTime?
+  emoji         String    @default("💰")
+  goalId        String?   // Opsional: Hubungan ke Life Goal
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goal         Goal?     @relation(fields: [goalId], references: [id], onDelete: SetNull)
+}
+
+model NotificationPreference {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  deadlineTugas       Boolean  @default(true)
+  habitReminder       Boolean  @default(true)
+  agendaOrganisasi    Boolean  @default(true)
+  budgetWarning       Boolean  @default(true)
+  weeklyReview        Boolean  @default(true)
+  dailyFinanceReport  Boolean  @default(false)
+  monthlyReport       Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+

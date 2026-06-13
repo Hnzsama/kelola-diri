@@ -1,6 +1,6 @@
 "use client"
 
-import { signOut } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 
 
 import {
@@ -35,7 +35,19 @@ export function NavUser({
     avatar: string
   }
 }) {
+  const { data: session } = useSession()
   const { isMobile } = useSidebar()
+
+  const activeUser = {
+    name: session?.user?.name || user.name,
+    email: session?.user?.email || user.email,
+    avatar: session?.user?.image || user.avatar,
+  }
+
+  // Get initials for fallback
+  const initials = activeUser.name
+    ? activeUser.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
+    : "KD"
 
   return (
     <SidebarMenu>
@@ -47,13 +59,13 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarImage src={activeUser.avatar} alt={activeUser.name} />
+                <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">{activeUser.name}</span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {user.email}
+                  {activeUser.email}
                 </span>
               </div>
               <HugeiconsIcon icon={MoreVerticalCircle01Icon} strokeWidth={2} className="ml-auto size-4" />
@@ -68,22 +80,24 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarImage src={activeUser.avatar} alt={activeUser.name} />
+                  <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate font-medium">{activeUser.name}</span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {user.email}
+                    {activeUser.email}
                   </span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <HugeiconsIcon icon={UserCircle02Icon} strokeWidth={2} />
-                Account
+              <DropdownMenuItem asChild>
+                <a href="/dashboard/settings" className="flex items-center gap-2 w-full cursor-pointer">
+                  <HugeiconsIcon icon={UserCircle02Icon} strokeWidth={2} />
+                  <span>Profile</span>
+                </a>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <HugeiconsIcon icon={CreditCardIcon} strokeWidth={2} />

@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 
-import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
@@ -16,7 +16,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { DashboardSquare01Icon, Menu01Icon, ChartHistogramIcon, Folder01Icon, UserGroupIcon, Camera01Icon, File01Icon, Settings05Icon, HelpCircleIcon, SearchIcon, Database01Icon, Analytics01Icon, CommandIcon } from "@hugeicons/core-free-icons"
+import { DashboardSquare01Icon, ChartHistogramIcon, UserGroupIcon, Settings05Icon, HelpCircleIcon, SearchIcon, Analytics01Icon, CommandIcon, Target02Icon, CreditCardIcon } from "@hugeicons/core-free-icons"
 
 const data = {
   user: {
@@ -27,90 +27,149 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: (
         <HugeiconsIcon icon={DashboardSquare01Icon} strokeWidth={2} />
       ),
     },
     {
-      title: "Lifecycle",
-      url: "#",
-      icon: (
-        <HugeiconsIcon icon={Menu01Icon} strokeWidth={2} />
-      ),
-    },
-    {
-      title: "Analytics",
-      url: "#",
+      title: "Akademik",
+      url: "/dashboard/academic",
       icon: (
         <HugeiconsIcon icon={ChartHistogramIcon} strokeWidth={2} />
       ),
+      items: [
+        {
+          title: "Dashboard Akademik",
+          url: "/dashboard/academic",
+        },
+        {
+          title: "Planner Akademik",
+          url: "/dashboard/academic/planner",
+        },
+        {
+          title: "Mata Kuliah",
+          url: "/dashboard/academic/courses",
+        },
+        {
+          title: "Pelacak Tugas",
+          url: "/dashboard/academic/assignments",
+        },
+        {
+          title: "Jadwal Ujian",
+          url: "/dashboard/academic/exams",
+        },
+        {
+          title: "Kelola Semester",
+          url: "/dashboard/academic/semesters",
+        },
+      ],
     },
     {
-      title: "Projects",
-      url: "#",
-      icon: (
-        <HugeiconsIcon icon={Folder01Icon} strokeWidth={2} />
-      ),
-    },
-    {
-      title: "Team",
-      url: "#",
+      title: "Organisasi",
+      url: "/dashboard/organizations",
       icon: (
         <HugeiconsIcon icon={UserGroupIcon} strokeWidth={2} />
       ),
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: (
-        <HugeiconsIcon icon={Camera01Icon} strokeWidth={2} />
-      ),
-      isActive: true,
-      url: "#",
       items: [
         {
-          title: "Active Proposals",
-          url: "#",
+          title: "Dashboard Organisasi",
+          url: "/dashboard/organizations",
         },
         {
-          title: "Archived",
-          url: "#",
+          title: "Daftar Organisasi",
+          url: "/dashboard/organizations/list",
+        },
+        {
+          title: "Agenda Kegiatan",
+          url: "/dashboard/organizations/events",
+        },
+        {
+          title: "Tugas Kepanitiaan",
+          url: "/dashboard/organizations/tasks",
+        },
+        {
+          title: "Arsip Kegiatan",
+          url: "/dashboard/organizations/archive",
         },
       ],
     },
     {
-      title: "Proposal",
+      title: "Habit Tracker",
+      url: "/dashboard/habits",
       icon: (
-        <HugeiconsIcon icon={File01Icon} strokeWidth={2} />
+        <HugeiconsIcon icon={Analytics01Icon} strokeWidth={2} />
       ),
-      url: "#",
       items: [
         {
-          title: "Active Proposals",
-          url: "#",
+          title: "Dashboard Habit",
+          url: "/dashboard/habits",
         },
         {
-          title: "Archived",
-          url: "#",
+          title: "Checklist Harian",
+          url: "/dashboard/habits/checklist",
+        },
+        {
+          title: "Kelola Kategori",
+          url: "/dashboard/habits/categories",
+        },
+        {
+          title: "Statistik",
+          url: "/dashboard/habits/stats",
         },
       ],
     },
     {
-      title: "Prompts",
+      title: "Goal & Life Planning",
+      url: "/dashboard/goals",
       icon: (
-        <HugeiconsIcon icon={File01Icon} strokeWidth={2} />
+        <HugeiconsIcon icon={Target02Icon} strokeWidth={2} />
       ),
-      url: "#",
       items: [
         {
-          title: "Active Proposals",
-          url: "#",
+          title: "Dashboard Goal",
+          url: "/dashboard/goals",
         },
         {
-          title: "Archived",
-          url: "#",
+          title: "Goal Aktif",
+          url: "/dashboard/goals/active",
+        },
+        {
+          title: "Roadmap",
+          url: "/dashboard/goals/roadmap",
+        },
+        {
+          title: "Progress Review",
+          url: "/dashboard/goals/review",
+        },
+      ],
+    },
+    {
+      title: "Keuangan",
+      url: "/dashboard/finance",
+      icon: (
+        <HugeiconsIcon icon={CreditCardIcon} strokeWidth={2} />
+      ),
+      items: [
+        {
+          title: "Dashboard Keuangan",
+          url: "/dashboard/finance",
+        },
+        {
+          title: "Riwayat Transaksi",
+          url: "/dashboard/finance/transactions",
+        },
+        {
+          title: "Batas Anggaran",
+          url: "/dashboard/finance/budget",
+        },
+        {
+          title: "Target Tabungan",
+          url: "/dashboard/finance/savings",
+        },
+        {
+          title: "Kelola Kategori",
+          url: "/dashboard/finance/categories",
         },
       ],
     },
@@ -118,7 +177,7 @@ const data = {
   navSecondary: [
     {
       title: "Settings",
-      url: "#",
+      url: "/dashboard/settings",
       icon: (
         <HugeiconsIcon icon={Settings05Icon} strokeWidth={2} />
       ),
@@ -138,29 +197,6 @@ const data = {
       ),
     },
   ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: (
-        <HugeiconsIcon icon={Database01Icon} strokeWidth={2} />
-      ),
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: (
-        <HugeiconsIcon icon={Analytics01Icon} strokeWidth={2} />
-      ),
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: (
-        <HugeiconsIcon icon={File01Icon} strokeWidth={2} />
-      ),
-    },
-  ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -173,17 +209,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
-              <a href="#">
+              <Link href="/dashboard">
                 <HugeiconsIcon icon={CommandIcon} strokeWidth={2} className="size-5!" />
-                <span className="text-base font-semibold">Acme Inc.</span>
-              </a>
+                <span className="text-base font-semibold">Kelola Diri</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

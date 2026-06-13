@@ -1,5 +1,8 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   SidebarGroup,
@@ -18,11 +21,46 @@ export function NavMain({
     title: string
     url: string
     icon?: React.ReactNode
+    items?: {
+      title: string
+      url: string
+    }[]
   }[]
 }) {
+  const pathname = usePathname()
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
+    Akademik: true,
+    Organisasi: true,
+    "Habit Tracker": true,
+    "Goal & Life Planning": true,
+  })
+
+  // Auto-expand menu containing the active page
+  useEffect(() => {
+    const activeItem = items.find(
+      (item) =>
+        pathname === item.url ||
+        item.items?.some((sub) => pathname === sub.url)
+    )
+    if (activeItem) {
+      setOpenMenus((prev) => ({
+        ...prev,
+        [activeItem.title]: true,
+      }))
+    }
+  }, [pathname, items])
+
+  const toggleMenu = (title: string) => {
+    setOpenMenus((prev) => ({
+      ...prev,
+      [title]: !prev[title],
+    }))
+  }
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
+        {/* Quick Create & Inbox */}
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton
@@ -42,17 +80,73 @@ export function NavMain({
             </Button>
           </SidebarMenuItem>
         </SidebarMenu>
+
+        {/* Main Navigation */}
         <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
-                {item.icon}
-                <span>{item.title}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {items.map((item) => {
+            const hasSubmenu = item.items && item.items.length > 0
+            const isOpen = openMenus[item.title]
+
+            return (
+              <SidebarMenuItem key={item.title} className="flex flex-col gap-1 w-full">
+                {hasSubmenu ? (
+                  <SidebarMenuButton
+                    onClick={() => toggleMenu(item.title)}
+                    tooltip={item.title}
+                    className="w-full flex items-center justify-between cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      {item.icon}
+                      <span>{item.title}</span>
+                    </div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={`size-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </SidebarMenuButton>
+                ) : (
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <Link href={item.url}>
+                      {item.icon}
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                )}
+
+                {hasSubmenu && isOpen && (
+                  <div className="flex flex-col gap-0.5 pl-6 border-l-2 border-border/20 ml-3.5 mt-0.5">
+                    {item.items?.map((subItem) => {
+                      const isActive = pathname === subItem.url
+                      return (
+                        <Link
+                          key={subItem.title}
+                          href={subItem.url}
+                          className={`text-xs font-semibold py-1 px-2 rounded-[var(--radius)] transition-colors uppercase tracking-wider block ${
+                            isActive
+                              ? "text-primary bg-primary/10 font-bold border-l-2 border-primary -ml-[2px] rounded-l-none"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                          }`}
+                        >
+                          {subItem.title}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
+              </SidebarMenuItem>
+            )
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
   )
 }
+
