@@ -1,0 +1,28 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/notifications?type=academic-deadline",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/notifications?type=habit-reminder",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/notifications?type=daily-finance",
+      "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/cron/notifications?type=weekly-review",
+      "schedule": "0 13 * * 0"
+    },
+    {
+      "path": "/api/cron/notifications?type=goal-stagnant",
+      "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/notifications?type=monthly-report",
+      "schedule": "0 1 1 * *"
+    }
+  ]
+}

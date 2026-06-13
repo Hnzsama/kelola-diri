@@ -15,8 +15,14 @@ export async function GET(req: Request) {
   const secret = searchParams.get("secret");
   const userId = searchParams.get("userId"); // for manual trigger test
 
+  const authHeader = req.headers.get("Authorization");
   const cronSecret = process.env.CRON_SECRET || "DEV_TOKEN";
-  if (secret !== cronSecret) {
+  
+  const isAuthorized = 
+    secret === cronSecret || 
+    (authHeader && authHeader === `Bearer ${cronSecret}`);
+
+  if (!isAuthorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
