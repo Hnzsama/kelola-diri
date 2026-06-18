@@ -105,6 +105,46 @@ export async function GET(req: Request) {
     // Calculate expense for previous month
     const prevMonthExpense = prevMonthExpenseTransactions.reduce((sum, t) => sum + t.amount, 0);
 
+    // CALCULATE ABSOLUTE ALL-TIME BALANCE & CASHFLOW PROJECTIONS
+    const allTimeTxs = await prisma.transaction.findMany({ where: { userId } });
+    const allTimeIncome = allTimeTxs.filter(t => t.type === "INCOME").reduce((sum, t) => sum + t.amount, 0);
+    const allTimeExpense = allTimeTxs.filter(t => t.type === "EXPENSE").reduce((sum, t) => sum + t.amount, 0);
+    const absoluteBalance = allTimeIncome - allTimeExpense;
+
+    const today = new Date();
+    const currentDay = today.getDate();
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const pendingDebtsReceivables = await prisma.debtReceivable.findMany({
+      where: {
+        userId,
+        status: "PENDING",
+        dueDate: {
+          gte: today,
+          lte: endOfMonth
+        }
+      }
+    });
+
+    const pendingReceivablesThisMonth = pendingDebtsReceivables.filter(d => d.type === "RECEIVABLE").reduce((sum, d) => sum + d.amount, 0);
+    const pendingDebtsThisMonth = pendingDebtsReceivables.filter(d => d.type === "DEBT").reduce((sum, d) => sum + d.amount, 0);
+
+    const recurringBills = await prisma.recurringBill.findMany({
+      where: { userId, isActive: true }
+    });
+    
+    const upcomingRecurringBillsThisMonth = recurringBills
+      .filter(b => b.dueDay >= currentDay && b.dueDay <= endOfMonth.getDate())
+      .reduce((sum, b) => sum + b.amount, 0);
+
+    const projectedBalance = absoluteBalance + pendingReceivablesThisMonth - pendingDebtsThisMonth - upcomingRecurringBillsThisMonth;
+
+    const allPendingDebts = await prisma.debtReceivable.findMany({
+      where: { userId, status: "PENDING" }
+    });
+    const totalPiutang = allPendingDebts.filter(d => d.type === "RECEIVABLE").reduce((sum, d) => sum + d.amount, 0);
+    const totalHutang = allPendingDebts.filter(d => d.type === "DEBT").reduce((sum, d) => sum + d.amount, 0);
+
     // Fetch user categories dynamically
     let userCategories = await prisma.financeCategory.findMany({
       where: { userId },
@@ -148,6 +188,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       balance: currentBalance,
+      absoluteBalance,
       income: totalIncome,
       expense: totalExpense,
       savings: totalSavings,
@@ -155,6 +196,12 @@ export async function GET(req: Request) {
       budgetVsSpent,
       yearlyBudgets,
       savingsGoals: finGoals,
+      totalPiutang,
+      totalHutang,
+      projectedBalance,
+      pendingReceivablesThisMonth,
+      pendingDebtsThisMonth,
+      upcomingRecurringBillsThisMonth,
     });
   } catch (error: any) {
     console.error("[FINANCE_STATS_ERROR]", error);

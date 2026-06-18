@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { sendTransactionEmailAlert } from "@/lib/notification-engine";
 
 export async function GET(req: Request) {
   try {
@@ -144,6 +145,15 @@ export async function POST(req: Request) {
         }
       })();
     }
+
+    // Send real-time email alert for transaction
+    (async () => {
+      try {
+        await sendTransactionEmailAlert(userId, newTransaction.id);
+      } catch (err) {
+        console.error("Failed sending transaction email:", err);
+      }
+    })();
 
     return NextResponse.json(newTransaction, { status: 201 });
   } catch (error: any) {

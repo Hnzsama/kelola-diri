@@ -49,7 +49,7 @@ interface Exam {
 
 interface CalendarEvent {
   id: string;
-  type: "CLASS" | "ASSIGNMENT" | "EXAM" | "PRESENTATION";
+  type: "CLASS" | "ASSIGNMENT" | "EXAM" | "PRESENTATION" | "DEBT" | "RECEIVABLE" | "BILL";
   title: string;
   subtitle: string;
   date: Date;
@@ -86,6 +86,8 @@ export default function AcademicPlannerPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
+  const [debts, setDebts] = useState<any[]>([]);
+  const [recurringBills, setRecurringBills] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [isSeeding, setIsSeeding] = useState(false);
@@ -97,11 +99,13 @@ export default function AcademicPlannerPage() {
   const fetchPlannerData = async () => {
     try {
       setIsLoading(true);
-      const [coursesRes, assignmentsRes, examsRes, semestersRes] = await Promise.all([
+      const [coursesRes, assignmentsRes, examsRes, semestersRes, debtsRes, recurringRes] = await Promise.all([
         fetch("/api/academic/courses"),
         fetch("/api/academic/assignments"),
         fetch("/api/academic/exams"),
         fetch("/api/academic/semesters"),
+        fetch("/api/finance/debts").catch(() => null),
+        fetch("/api/finance/recurring").catch(() => null),
       ]);
 
       if (!coursesRes.ok || !assignmentsRes.ok || !examsRes.ok || !semestersRes.ok) {
@@ -112,11 +116,15 @@ export default function AcademicPlannerPage() {
       const assignmentsData = await assignmentsRes.json();
       const examsData = await examsRes.json();
       const semestersData = await semestersRes.json();
+      const debtsData = debtsRes && debtsRes.ok ? await debtsRes.json() : [];
+      const recurringData = recurringRes && recurringRes.ok ? await recurringRes.json() : [];
 
       setCourses(coursesData);
       setAssignments(assignmentsData);
       setExams(examsData);
       setSemesters(semestersData);
+      setDebts(debtsData);
+      setRecurringBills(recurringData);
     } catch (error) {
       toast.error("Gagal memuat jadwal planner");
     } finally {
@@ -215,6 +223,36 @@ export default function AcademicPlannerPage() {
           date: examDate,
           room: exam.room || undefined,
           details: `Sifat: ${exam.type.replace("_", " ")}`,
+        });
+      }
+    });
+
+    // 4. Debts and Receivables
+    debts.forEach((debt) => {
+      const debtDate = new Date(debt.dueDate);
+      const debtDateStr = debtDate.toISOString().split("T")[0];
+      if (debtDateStr === dateStr) {
+        events.push({
+          id: `debt-${debt.id}`,
+          type: debt.type,
+          title: debt.type === "DEBT" ? `👤 Hutang ke ${debt.contact}` : `👤 Piutang dari ${debt.contact}`,
+          subtitle: new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(debt.amount),
+          date: debtDate,
+          details: `Tujuan: ${debt.purpose} | Status: ${debt.status === "PAID" ? "Lunas" : "Belum Lunas"}`,
+        });
+      }
+    });
+
+    // 5. Recurring Bills
+    recurringBills.forEach((bill) => {
+      if (bill.isActive && date.getDate() === bill.dueDay) {
+        events.push({
+          id: `bill-${bill.id}-${dateStr}`,
+          type: "BILL",
+          title: `💸 Tagihan: ${bill.name}`,
+          subtitle: new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(bill.amount),
+          date: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 9, 0),
+          details: `Tagihan berulang bulanan tanggal ${bill.dueDay}`,
         });
       }
     });
@@ -341,6 +379,12 @@ export default function AcademicPlannerPage() {
         return "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20";
       case "PRESENTATION":
         return "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-400/30 hover:bg-purple-500/20";
+      case "DEBT":
+        return "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-400/30 hover:bg-rose-500/20";
+      case "RECEIVABLE":
+        return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-400/30 hover:bg-emerald-500/20";
+      case "BILL":
+        return "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-400/30 hover:bg-indigo-500/20";
       default:
         return "bg-muted text-muted-foreground";
     }
@@ -356,6 +400,12 @@ export default function AcademicPlannerPage() {
         return "bg-destructive text-white";
       case "PRESENTATION":
         return "bg-purple-500 text-white";
+      case "DEBT":
+        return "bg-rose-500 text-white";
+      case "RECEIVABLE":
+        return "bg-emerald-500 text-white";
+      case "BILL":
+        return "bg-indigo-500 text-white";
       default:
         return "bg-muted text-muted-foreground";
     }

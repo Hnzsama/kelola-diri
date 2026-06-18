@@ -152,12 +152,20 @@ export default function BudgetLimitsPage() {
     }
   };
 
+  const getTodayString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const handleOpenQuickAdd = (categoryId: string, categoryName: string) => {
     setQuickAddCatId(categoryId);
     setQuickAddCatName(categoryName);
     setQuickAddAmount("");
     setQuickAddDesc("");
-    setQuickAddDate(new Date().toISOString().split("T")[0]);
+    setQuickAddDate(getTodayString());
     setIsQuickAddOpen(true);
   };
 

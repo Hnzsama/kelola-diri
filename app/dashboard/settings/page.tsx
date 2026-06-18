@@ -41,6 +41,26 @@ export default function SettingsPage() {
   const [isPrefLoading, setIsPrefLoading] = useState(true)
   const [isTestEmailSending, setIsTestEmailSending] = useState(false)
 
+  // Secondary Emails states
+  interface SecondaryEmail {
+    id: string;
+    email: string;
+    label: string;
+    deadlineTugas: boolean;
+    habitReminder: boolean;
+    agendaOrganisasi: boolean;
+    budgetWarning: boolean;
+    weeklyReview: boolean;
+    dailyFinanceReport: boolean;
+    monthlyReport: boolean;
+    transactionEmail: boolean;
+  }
+  const [secondaryEmails, setSecondaryEmails] = useState<SecondaryEmail[]>([])
+  const [isSecLoading, setIsSecLoading] = useState(true)
+  const [newSecEmail, setNewSecEmail] = useState("")
+  const [newSecLabel, setNewSecLabel] = useState("")
+  const [isAddingSec, setIsAddingSec] = useState(false)
+
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -48,8 +68,91 @@ export default function SettingsPage() {
   useEffect(() => {
     if (session?.user) {
       fetchPreferences()
+      fetchSecondaryEmails()
     }
   }, [session])
+
+  const fetchSecondaryEmails = async () => {
+    try {
+      setIsSecLoading(true)
+      const res = await fetch("/api/user/secondary-emails")
+      if (!res.ok) throw new Error("Gagal mengambil data")
+      const data = await res.json()
+      setSecondaryEmails(data)
+    } catch {
+      console.error("Gagal memuat email sekunder")
+    } finally {
+      setIsSecLoading(false)
+    }
+  }
+
+  const handleAddSecondaryEmail = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newSecEmail || !newSecLabel) {
+      toast.error("Email dan label wajib diisi")
+      return
+    }
+    setIsAddingSec(true)
+    try {
+      const res = await fetch("/api/user/secondary-emails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newSecEmail, label: newSecLabel }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || "Gagal menambahkan email sekunder")
+      } else {
+        toast.success("Email sekunder berhasil ditambahkan!")
+        setNewSecEmail("")
+        setNewSecLabel("")
+        fetchSecondaryEmails()
+      }
+    } catch {
+      toast.error("Terjadi kesalahan sistem")
+    } finally {
+      setIsAddingSec(false)
+    }
+  }
+
+  const handleUpdateSecondaryPreference = async (id: string, updates: Partial<SecondaryEmail>) => {
+    try {
+      const res = await fetch(`/api/user/secondary-emails/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || "Gagal memperbarui preferensi")
+      } else {
+        setSecondaryEmails(prev =>
+          prev.map(sec => sec.id === id ? { ...sec, ...updates } : sec)
+        )
+        toast.success("Preferensi email sekunder berhasil diperbarui!")
+      }
+    } catch {
+      toast.error("Terjadi kesalahan sistem")
+    }
+  }
+
+  const handleDeleteSecondaryEmail = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus email sekunder ini?")) return
+    try {
+      const res = await fetch(`/api/user/secondary-emails/${id}`, {
+        method: "DELETE",
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || "Gagal menghapus email sekunder")
+      } else {
+        toast.success("Email sekunder berhasil dihapus!")
+        fetchSecondaryEmails()
+      }
+    } catch {
+      toast.error("Terjadi kesalahan sistem")
+    }
+  }
 
   const fetchPreferences = async () => {
     try {
@@ -545,6 +648,199 @@ export default function SettingsPage() {
                     </button>
                   </div>
                 </form>
+              )}
+
+              {/* SEKSI EMAIL SEKUNDER (ORANG TUA / PASANGAN) */}
+              {!isPrefLoading && (
+                <div className="border-t border-border/20 pt-6 mt-8 space-y-6">
+                  <div>
+                    <h3 className="text-lg font-bold uppercase font-mono flex items-center gap-2">
+                      <span>📧</span> Email Sekunder (Orang Tua / Pasangan)
+                    </h3>
+                    <p className="text-xs text-muted-foreground font-mono uppercase">
+                      Kirimkan salinan notifikasi asisten personal Anda ke alamat email tambahan.
+                    </p>
+                  </div>
+
+                  {/* FORM TAMBAH EMAIL */}
+                  <form onSubmit={handleAddSecondaryEmail} className="p-4 border-2 border-border bg-muted/5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,1)] space-y-4 font-mono">
+                    <h4 className="text-xs font-extrabold uppercase">➕ Daftarkan Email Baru</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-muted-foreground mb-1">Alamat Email</label>
+                        <input
+                          type="email"
+                          required
+                          placeholder="orangtua@email.com"
+                          value={newSecEmail}
+                          onChange={(e) => setNewSecEmail(e.target.value)}
+                          className="w-full border-2 border-border bg-background p-2.5 font-mono text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-muted-foreground mb-1">Hubungan / Label</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Contoh: Orang Tua, Pasangan, Sahabat"
+                          value={newSecLabel}
+                          onChange={(e) => setNewSecLabel(e.target.value)}
+                          className="w-full border-2 border-border bg-background p-2.5 font-mono text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isAddingSec}
+                      className="px-4 py-2 border-2 border-border bg-primary text-primary-foreground font-bold text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-[1px] disabled:opacity-50 transition-all cursor-pointer"
+                    >
+                      {isAddingSec ? "Menambahkan..." : "Tambah Email Sekunder"}
+                    </button>
+                  </form>
+
+                  {/* DAFTAR EMAIL */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-extrabold uppercase font-mono">📋 Daftar Email Terdaftar</h4>
+                    {isSecLoading ? (
+                      <div className="text-xs text-muted-foreground font-mono">Memuat daftar email sekunder...</div>
+                    ) : secondaryEmails.length === 0 ? (
+                      <div className="text-xs text-muted-foreground font-mono italic p-4 border-2 border-dashed border-border bg-background">
+                        Belum ada email sekunder yang didaftarkan.
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {secondaryEmails.map((sec) => (
+                          <div key={sec.id} className="p-4 border-2 border-border bg-background shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,1)] space-y-3 font-mono">
+                            <div className="flex justify-between items-center border-b border-border/20 pb-2">
+                              <div>
+                                <span className="inline-block bg-primary text-primary-foreground font-extrabold text-[9px] uppercase border border-border px-2 py-0.5 mr-2">
+                                  {sec.label}
+                                </span>
+                                <span className="text-xs font-bold">{sec.email}</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSecondaryEmail(sec.id)}
+                                className="px-2 py-1 bg-rose-500/10 hover:bg-rose-500 hover:text-white border border-rose-500 text-rose-500 font-bold text-[9px] uppercase tracking-wide transition-all cursor-pointer"
+                              >
+                                Hapus
+                              </button>
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="block text-[9px] font-bold uppercase text-muted-foreground">Aktifkan Notifikasi untuk Email Ini:</label>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 pt-1">
+                                <div className="flex items-center gap-1.5 p-2 border border-border bg-muted/20">
+                                  <input
+                                    type="checkbox"
+                                    id={`sec-${sec.id}-deadlineTugas`}
+                                    checked={sec.deadlineTugas}
+                                    onChange={(e) => handleUpdateSecondaryPreference(sec.id, { deadlineTugas: e.target.checked })}
+                                    className="size-3.5 accent-primary cursor-pointer border border-border"
+                                  />
+                                  <label htmlFor={`sec-${sec.id}-deadlineTugas`} className="cursor-pointer select-none text-[9px] font-bold uppercase">
+                                    📚 Tugas Kuliah
+                                  </label>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 p-2 border border-border bg-muted/20">
+                                  <input
+                                    type="checkbox"
+                                    id={`sec-${sec.id}-habitReminder`}
+                                    checked={sec.habitReminder}
+                                    onChange={(e) => handleUpdateSecondaryPreference(sec.id, { habitReminder: e.target.checked })}
+                                    className="size-3.5 accent-primary cursor-pointer border border-border"
+                                  />
+                                  <label htmlFor={`sec-${sec.id}-habitReminder`} className="cursor-pointer select-none text-[9px] font-bold uppercase">
+                                    🔥 Habit Reminder
+                                  </label>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 p-2 border border-border bg-muted/20">
+                                  <input
+                                    type="checkbox"
+                                    id={`sec-${sec.id}-agendaOrganisasi`}
+                                    checked={sec.agendaOrganisasi}
+                                    onChange={(e) => handleUpdateSecondaryPreference(sec.id, { agendaOrganisasi: e.target.checked })}
+                                    className="size-3.5 accent-primary cursor-pointer border border-border"
+                                  />
+                                  <label htmlFor={`sec-${sec.id}-agendaOrganisasi`} className="cursor-pointer select-none text-[9px] font-bold uppercase">
+                                    🏢 Agenda Org
+                                  </label>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 p-2 border border-border bg-muted/20">
+                                  <input
+                                    type="checkbox"
+                                    id={`sec-${sec.id}-budgetWarning`}
+                                    checked={sec.budgetWarning}
+                                    onChange={(e) => handleUpdateSecondaryPreference(sec.id, { budgetWarning: e.target.checked })}
+                                    className="size-3.5 accent-primary cursor-pointer border border-border"
+                                  />
+                                  <label htmlFor={`sec-${sec.id}-budgetWarning`} className="cursor-pointer select-none text-[9px] font-bold uppercase">
+                                    💸 Info Anggaran
+                                  </label>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 p-2 border border-border bg-muted/20">
+                                  <input
+                                    type="checkbox"
+                                    id={`sec-${sec.id}-weeklyReview`}
+                                    checked={sec.weeklyReview}
+                                    onChange={(e) => handleUpdateSecondaryPreference(sec.id, { weeklyReview: e.target.checked })}
+                                    className="size-3.5 accent-primary cursor-pointer border border-border"
+                                  />
+                                  <label htmlFor={`sec-${sec.id}-weeklyReview`} className="cursor-pointer select-none text-[9px] font-bold uppercase">
+                                    ☀️ Weekly Review
+                                  </label>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 p-2 border border-border bg-muted/20">
+                                  <input
+                                    type="checkbox"
+                                    id={`sec-${sec.id}-dailyFinanceReport`}
+                                    checked={sec.dailyFinanceReport}
+                                    onChange={(e) => handleUpdateSecondaryPreference(sec.id, { dailyFinanceReport: e.target.checked })}
+                                    className="size-3.5 accent-primary cursor-pointer border border-border"
+                                  />
+                                  <label htmlFor={`sec-${sec.id}-dailyFinanceReport`} className="cursor-pointer select-none text-[9px] font-bold uppercase">
+                                    💰 Rekap Harian
+                                  </label>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 p-2 border border-border bg-muted/20">
+                                  <input
+                                    type="checkbox"
+                                    id={`sec-${sec.id}-monthlyReport`}
+                                    checked={sec.monthlyReport}
+                                    onChange={(e) => handleUpdateSecondaryPreference(sec.id, { monthlyReport: e.target.checked })}
+                                    className="size-3.5 accent-primary cursor-pointer border border-border"
+                                  />
+                                  <label htmlFor={`sec-${sec.id}-monthlyReport`} className="cursor-pointer select-none text-[9px] font-bold uppercase">
+                                    📊 Laporan Bulanan
+                                  </label>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 p-2 border border-border bg-muted/20">
+                                  <input
+                                    type="checkbox"
+                                    id={`sec-${sec.id}-transactionEmail`}
+                                    checked={sec.transactionEmail}
+                                    onChange={(e) => handleUpdateSecondaryPreference(sec.id, { transactionEmail: e.target.checked })}
+                                    className="size-3.5 accent-primary cursor-pointer border border-border"
+                                  />
+                                  <label htmlFor={`sec-${sec.id}-transactionEmail`} className="cursor-pointer select-none text-[9px] font-bold uppercase">
+                                    📤 Transaksi Real-time
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           )}

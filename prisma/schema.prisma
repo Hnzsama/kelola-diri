@@ -45,6 +45,14 @@ model User {
   financialGoals    FinancialGoal[]
   financeCategories FinanceCategory[]
   notificationPreference NotificationPreference?
+  debtsReceivables  DebtReceivable[]
+  recurringBills    RecurringBill[]
+  secondaryEmails   SecondaryEmail[]
+  clients           Client[]
+  projects          Project[]
+  invoices          Invoice[]
+  incomes           Income[]
+  jobApplications   JobApplication[]
 }
 
 model Account {
@@ -334,6 +342,7 @@ model Transaction {
   type        String   // "INCOME", "EXPENSE"
   amount      Float
   categoryId  String
+  projectId   String?  // Optional relation to Career Project
   date        DateTime @default(now())
   description String?
   createdAt   DateTime @default(now())
@@ -341,6 +350,7 @@ model Transaction {
 
   user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   category FinanceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  project  Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
 }
 
 model Budget {
@@ -390,5 +400,152 @@ model NotificationPreference {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model DebtReceivable {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // "DEBT" (Hutang), "RECEIVABLE" (Piutang)
+  contact   String   // nama kontak
+  amount    Float
+  purpose   String
+  dueDate   DateTime
+  status    String   @default("PENDING") // "PENDING", "PAID"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RecurringBill {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  amount    Float
+  dueDay    Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SecondaryEmail {
+  id                  String   @id @default(uuid())
+  userId              String
+  email               String
+  label               String   // "Orang Tua", "Pasangan", dll.
+  deadlineTugas       Boolean  @default(false)
+  habitReminder       Boolean  @default(false)
+  agendaOrganisasi    Boolean  @default(false)
+  budgetWarning       Boolean  @default(false)
+  weeklyReview        Boolean  @default(false)
+  dailyFinanceReport  Boolean  @default(false)
+  monthlyReport       Boolean  @default(false)
+  transactionEmail    Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Client {
+  id        String    @id @default(uuid())
+  userId    String
+  name      String
+  company   String
+  email     String
+  phone     String
+  notes     String?   @db.Text
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projects Project[]
+}
+
+model Project {
+  id              String        @id @default(uuid())
+  userId          String
+  clientId        String
+  name            String
+  description     String?       @db.Text
+  contractValue   Float
+  startDate       DateTime
+  endDate         DateTime
+  status          String        @default("PLANNING") // "PLANNING", "PROGRESS", "WAITING_FEEDBACK", "REVISION", "COMPLETED", "CANCELLED"
+  financialGoalId String?       // Opsional: Hubungan untuk auto-update saving goal
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client       Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  tasks        ProjectTask[]
+  invoices     Invoice[]
+  transactions Transaction[]
+}
+
+model ProjectTask {
+  id          String   @id @default(uuid())
+  projectId   String
+  title       String
+  description String?  @db.Text
+  dueDate     DateTime
+  priority    String   @default("MEDIUM") // "LOW", "MEDIUM", "HIGH"
+  status      String   @default("TODO")   // "TODO", "IN_PROGRESS", "DONE"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Invoice {
+  id            String   @id @default(uuid())
+  userId        String
+  projectId     String
+  clientId      String
+  invoiceNumber String   @unique // e.g. "INV-2026-001"
+  amount        Float
+  issuedDate    DateTime
+  dueDate       DateTime
+  status        String   @default("DRAFT") // "DRAFT", "SENT", "PAID", "OVERDUE"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  incomeRecord Income?
+}
+
+model Income {
+  id        String   @id @default(uuid())
+  userId    String
+  invoiceId String?  @unique // Terisi jika terkonversi dari invoice PAID
+  source    String   // "FREELANCE", "PART_TIME", "MAGANG", "BONUS"
+  amount    Float
+  date      DateTime
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoice Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+}
+
+model JobApplication {
+  id          String   @id @default(uuid())
+  userId      String
+  companyName String
+  position    String
+  jobLink     String?
+  appliedDate DateTime
+  status      String   @default("WISHLIST") // "WISHLIST", "APPLIED", "HR_INTERVIEW", "TECHNICAL_TEST", "USER_INTERVIEW", "OFFERING", "ACCEPTED", "REJECTED"
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
 
 

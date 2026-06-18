@@ -17,7 +17,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { DashboardSquare01Icon, ChartHistogramIcon, UserGroupIcon, Settings05Icon, HelpCircleIcon, SearchIcon, Analytics01Icon, CommandIcon, Target02Icon, CreditCardIcon } from "@hugeicons/core-free-icons"
+import { DashboardSquare01Icon, ChartHistogramIcon, UserGroupIcon, Settings05Icon, HelpCircleIcon, SearchIcon, Analytics01Icon, CommandIcon, Target02Icon, CreditCardIcon, Briefcase01Icon } from "@hugeicons/core-free-icons"
 
 const data = {
   user: {
@@ -169,8 +169,53 @@ const data = {
           url: "/dashboard/finance/savings",
         },
         {
+          title: "Hutang & Piutang",
+          url: "/dashboard/finance/debts",
+        },
+        {
+          title: "Tagihan Berulang",
+          url: "/dashboard/finance/recurring",
+        },
+        {
+          title: "Laporan Keuangan",
+          url: "/dashboard/finance/reports",
+        },
+        {
           title: "Kelola Kategori",
           url: "/dashboard/finance/categories",
+        },
+      ],
+    },
+    {
+      title: "Karier & Freelance",
+      url: "/dashboard/career",
+      icon: (
+        <HugeiconsIcon icon={Briefcase01Icon} strokeWidth={2} />
+      ),
+      items: [
+        {
+          title: "Dashboard Karier",
+          url: "/dashboard/career",
+        },
+        {
+          title: "Project Client",
+          url: "/dashboard/career/projects",
+        },
+        {
+          title: "Daftar Klien",
+          url: "/dashboard/career/clients",
+        },
+        {
+          title: "Invoice Proyek",
+          url: "/dashboard/career/invoices",
+        },
+        {
+          title: "Log Penghasilan",
+          url: "/dashboard/career/income",
+        },
+        {
+          title: "Job Tracker",
+          url: "/dashboard/career/jobs",
         },
       ],
     },

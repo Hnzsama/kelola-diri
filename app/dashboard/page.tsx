@@ -13,6 +13,12 @@ export default function RootDashboardPage() {
   const [events, setEvents] = useState<any[]>([]);
   const [orgTasks, setOrgTasks] = useState<any[]>([]);
   const [habits, setHabits] = useState<any[]>([]);
+  
+  // Career integration states
+  const [careerProjects, setCareerProjects] = useState<any[]>([]);
+  const [careerInvoices, setCareerInvoices] = useState<any[]>([]);
+  const [careerIncome, setCareerIncome] = useState<any[]>([]);
+  
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -30,6 +36,9 @@ export default function RootDashboardPage() {
         resEvents,
         resOrgTasks,
         resHabits,
+        resCareerProjects,
+        resCareerInvoices,
+        resCareerIncome,
       ] = await Promise.all([
         fetch("/api/goals"),
         fetch("/api/academic/courses"),
@@ -38,6 +47,9 @@ export default function RootDashboardPage() {
         fetch("/api/organizations/events"),
         fetch("/api/organizations/tasks"),
         fetch("/api/habits"),
+        fetch("/api/career/projects"),
+        fetch("/api/career/invoices"),
+        fetch("/api/career/income"),
       ]);
 
       const [
@@ -48,6 +60,9 @@ export default function RootDashboardPage() {
         eventsData,
         orgTasksData,
         habitsData,
+        careerProjectsData,
+        careerInvoicesData,
+        careerIncomeData,
       ] = await Promise.all([
         resGoals.ok ? resGoals.json() : [],
         resCourses.ok ? resCourses.json() : [],
@@ -56,6 +71,9 @@ export default function RootDashboardPage() {
         resEvents.ok ? resEvents.json() : [],
         resOrgTasks.ok ? resOrgTasks.json() : [],
         resHabits.ok ? resHabits.json() : [],
+        resCareerProjects.ok ? resCareerProjects.json() : [],
+        resCareerInvoices.ok ? resCareerInvoices.json() : [],
+        resCareerIncome.ok ? resCareerIncome.json() : [],
       ]);
 
       setGoals(goalsData);
@@ -65,6 +83,9 @@ export default function RootDashboardPage() {
       setEvents(eventsData);
       setOrgTasks(orgTasksData);
       setHabits(habitsData);
+      setCareerProjects(careerProjectsData);
+      setCareerInvoices(careerInvoicesData);
+      setCareerIncome(careerIncomeData);
     } catch (error) {
       console.error("[DASHBOARD_FETCH_ERROR]", error);
       toast.error("Gagal memuat data dashboard harian");
@@ -294,6 +315,22 @@ export default function RootDashboardPage() {
   const totalActiveGoalsProgress = activeGoals.reduce((sum, g) => sum + g.progress, 0);
   const avgGoalProgress = activeGoals.length > 0 ? Math.round(totalActiveGoalsProgress / activeGoals.length) : 0;
 
+  // 7. KARIER & FREELANCE SUMMARY
+  const formatRupiah = (val: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(val);
+  
+  const activeCareerProjects = careerProjects.filter((p: any) => ["PROGRESS", "REVISION", "WAITING_FEEDBACK", "PLANNING"].includes(p.status));
+  const upcomingProjectDeadlines = [...activeCareerProjects]
+    .sort((a: any, b: any) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime())
+    .slice(0, 3);
+  
+  const outstandingInvoices = careerInvoices.filter((inv: any) => ["SENT", "OVERDUE"].includes(inv.status));
+  const outstandingInvoiceTotal = outstandingInvoices.reduce((sum: number, inv: any) => sum + inv.amount, 0);
+  
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const careerMonthlyIncome = careerIncome
+    .filter((inc: any) => new Date(inc.date) >= startOfMonth)
+    .reduce((sum: number, inc: any) => sum + inc.amount, 0);
+
   return (
     <div className="w-full px-4 lg:px-6">
       {/* Welcome Banner */}
@@ -493,12 +530,13 @@ export default function RootDashboardPage() {
 
       {/* SECTION 3: RINGKASAN STATISTIK HIDUP */}
       <h2 className="font-mono font-extrabold text-xs uppercase tracking-widest text-muted-foreground mb-4">📊 Ringkasan Statistik</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
         {[
           { label: "Akademik", value: undoneAssignments, sub: "Tugas/Ujian Aktif", href: "/dashboard/academic" },
           { label: "Organisasi", value: upcomingEvents, sub: "Agenda Mendatang", href: "/dashboard/organizations" },
           { label: "Habit Tracker", value: `${habitCompletionPct}%`, sub: "Selesai Hari Ini", href: "/dashboard/habits" },
           { label: "Goal", value: `${avgGoalProgress}%`, sub: "Progress Rata-rata", href: "/dashboard/goals" },
+          { label: "Karier", value: activeCareerProjects.length, sub: "Proyek Aktif", href: "/dashboard/career" },
         ].map((stat, idx) => (
           <Link href={stat.href} key={idx} className="block">
             <div className="border-2 border-border bg-card p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col justify-between h-full cursor-pointer">
@@ -511,6 +549,74 @@ export default function RootDashboardPage() {
           </Link>
         ))}
       </div>
+
+      {/* SECTION 4: KARIER & FREELANCE */}
+      {(activeCareerProjects.length > 0 || outstandingInvoices.length > 0) && (
+        <>
+          <h2 className="font-mono font-extrabold text-xs uppercase tracking-widest text-muted-foreground mb-4">💼 Karier & Freelance</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            {/* Deadline Proyek */}
+            <div className="lg:col-span-2 border-2 border-border bg-card p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] font-mono">
+              <div className="border-b border-border/20 pb-3 mb-4 flex justify-between items-center">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">📅 Deadline Proyek Freelance Terdekat</span>
+                <Link href="/dashboard/career/projects" className="text-[9px] font-mono font-bold text-primary uppercase hover:underline cursor-pointer">Kelola Proyek ↗</Link>
+              </div>
+              {upcomingProjectDeadlines.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic text-center py-4">Tidak ada proyek aktif mendekati tenggat waktu. 🎉</p>
+              ) : (
+                <div className="space-y-3">
+                  {upcomingProjectDeadlines.map((p: any) => {
+                    const tasksTotal = p.tasks?.length || 0;
+                    const tasksDone = p.tasks?.filter((t: any) => t.status === "DONE").length || 0;
+                    const pct = tasksTotal > 0 ? Math.round((tasksDone / tasksTotal) * 100) : 0;
+                    const daysLeft = Math.ceil((new Date(p.endDate).getTime() - today.getTime()) / 86400000);
+                    const isNear = daysLeft <= 3;
+                    return (
+                      <div key={p.id} className={`border-2 p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] space-y-2 ${isNear ? "border-rose-500 bg-rose-500/5" : "border-border bg-background"}`}>
+                        <div className="flex justify-between text-xs font-bold">
+                          <span className="truncate max-w-[200px]">{p.name}</span>
+                          <span className={isNear ? "text-rose-500" : "text-muted-foreground"}>
+                            {daysLeft <= 0 ? "Telah lewat!" : daysLeft === 1 ? "Besok" : `${daysLeft} hari lagi`}
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">Klien: {p.client?.name}</div>
+                        <div className="w-full bg-muted h-1.5 border border-border">
+                          <div className="bg-cyan-400 h-full transition-all" style={{ width: `${pct}%` }} />
+                        </div>
+                        <div className="flex justify-between text-[9px] text-muted-foreground">
+                          <span>Tugas: {tasksDone}/{tasksTotal}</span>
+                          <span>{pct}% selesai</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Outstanding Invoices & Monthly Income */}
+            <div className="space-y-4">
+              <div className="border-2 border-border bg-amber-400/5 p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] font-mono">
+                <div className="border-b border-border/20 pb-2 mb-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">🚨 Invoice Tertunggak</span>
+                </div>
+                <div className="text-lg font-extrabold text-amber-600 dark:text-amber-400">{formatRupiah(outstandingInvoiceTotal)}</div>
+                <div className="text-[10px] text-muted-foreground mt-1">{outstandingInvoices.length} invoice menunggu pembayaran</div>
+                <Link href="/dashboard/career/invoices" className="inline-block mt-3 text-[9px] font-bold uppercase text-primary hover:underline">Kelola Invoice ↗</Link>
+              </div>
+
+              <div className="border-2 border-border bg-emerald-400/5 p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] font-mono">
+                <div className="border-b border-border/20 pb-2 mb-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">💰 Omzet Bulan Ini</span>
+                </div>
+                <div className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">{formatRupiah(careerMonthlyIncome)}</div>
+                <div className="text-[10px] text-muted-foreground mt-1">Pendapatan freelance & karier</div>
+                <Link href="/dashboard/career/income" className="inline-block mt-3 text-[9px] font-bold uppercase text-primary hover:underline">Log Pendapatan ↗</Link>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

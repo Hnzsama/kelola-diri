@@ -7,6 +7,7 @@ import {
   runMonthlyReport,
   runGoalStagnationCheck,
   sendTestDemoEmail,
+  runDailyFinanceAlerts,
 } from "@/lib/notification-engine";
 
 export async function GET(req: Request) {
@@ -50,6 +51,9 @@ export async function GET(req: Request) {
       case "goal-stagnant":
         await runGoalStagnationCheck();
         return NextResponse.json({ success: "Goal stagnation check processed successfully." });
+      case "finance-alerts":
+        await runDailyFinanceAlerts();
+        return NextResponse.json({ success: "Daily finance alerts processed successfully." });
       case "test-email":
         if (!userId) {
           return NextResponse.json({ error: "Missing 'userId' parameter for test email" }, { status: 400 });

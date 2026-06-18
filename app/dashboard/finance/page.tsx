@@ -17,9 +17,16 @@ interface BudgetVsSpent {
 
 interface Stats {
   balance: number;
+  absoluteBalance: number;
   income: number;
   expense: number;
   savings: number;
+  totalPiutang: number;
+  totalHutang: number;
+  projectedBalance: number;
+  pendingReceivablesThisMonth: number;
+  pendingDebtsThisMonth: number;
+  upcomingRecurringBillsThisMonth: number;
   budgetVsSpent: BudgetVsSpent[];
 }
 
@@ -51,11 +58,20 @@ export default function FinanceDashboardPage() {
   const [txAmount, setTxAmount] = useState("");
   const [txCategory, setTxCategory] = useState("");
   const [txDescription, setTxDescription] = useState("");
+  const getTodayString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const [txDate, setTxDate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
+    setTxDate(getTodayString());
   }, []);
 
   const fetchDashboardData = async () => {
@@ -140,7 +156,7 @@ export default function FinanceDashboardPage() {
       toast.success("Transaksi berhasil dicatat!");
       setTxAmount("");
       setTxDescription("");
-      setTxDate("");
+      setTxDate(getTodayString());
       fetchDashboardData();
     } catch {
       toast.error("Terjadi kesalahan");
@@ -204,13 +220,45 @@ export default function FinanceDashboardPage() {
       ) : (
         stats && (
           <>
+            {/* CASHFLOW PROJECTION BANNER */}
+            <div className="border-2 border-border bg-yellow-100 dark:bg-yellow-950/20 p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] mb-8 font-mono">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-400">🔮 Cashflow Projection (Estimasi Akhir Bulan)</span>
+                  <h2 className="text-3xl font-black mt-2 text-foreground">
+                    {formatRupiah(stats.projectedBalance)}
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-2 max-w-2xl leading-relaxed">
+                    Dihitung dari Saldo Sebenarnya ({formatRupiah(stats.absoluteBalance)}) 
+                    {stats.pendingReceivablesThisMonth > 0 && ` + Piutang Masuk (+${formatRupiah(stats.pendingReceivablesThisMonth)})`}
+                    {stats.pendingDebtsThisMonth > 0 && ` - Hutang Keluar (-${formatRupiah(stats.pendingDebtsThisMonth)})`}
+                    {stats.upcomingRecurringBillsThisMonth > 0 && ` - Tagihan Berulang (-${formatRupiah(stats.upcomingRecurringBillsThisMonth)})`}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Link href="/dashboard/finance/recurring">
+                    <button className="px-3 py-2 border-2 border-border font-bold text-[10px] uppercase bg-background shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-[1px] transition-all cursor-pointer">
+                      Tagihan Mendatang 📅
+                    </button>
+                  </Link>
+                  <Link href="/dashboard/finance/debts">
+                    <button className="px-3 py-2 border-2 border-border font-bold text-[10px] uppercase bg-background shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-[1px] transition-all cursor-pointer">
+                      Kelola Hutang 👤
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
             {/* STATS CARDS */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
               {[
-                { label: "Saldo Bulan Ini", value: formatRupiah(stats.balance), sub: "Bisa Dibelanjakan", color: stats.balance >= 0 ? "text-blue-600 dark:text-blue-400" : "text-rose-600 dark:text-rose-400" },
-                { label: "Total Pemasukan", value: formatRupiah(stats.income), sub: "Bulan Ini", color: "text-emerald-600 dark:text-emerald-400" },
-                { label: "Total Pengeluaran", value: formatRupiah(stats.expense), sub: "Bulan Ini", color: "text-rose-600 dark:text-rose-400" },
-                { label: "Total Tabungan", value: formatRupiah(stats.savings), sub: "Akumulasi Target", color: "text-purple-600 dark:text-purple-400" },
+                { label: "Saldo Sebenarnya", value: formatRupiah(stats.absoluteBalance), sub: "Total Kas Tersisa", color: stats.absoluteBalance >= 0 ? "text-blue-600 dark:text-blue-400" : "text-rose-600 dark:text-rose-400" },
+                { label: "Total Tabungan", value: formatRupiah(stats.savings), sub: "Akumulasi Dana Khusus", color: "text-purple-600 dark:text-purple-400" },
+                { label: "Piutang Aktif (Piutang)", value: formatRupiah(stats.totalPiutang), sub: "Pemberian Pinjaman", color: "text-emerald-600 dark:text-emerald-400" },
+                { label: "Hutang Aktif (Hutang)", value: formatRupiah(stats.totalHutang), sub: "Pinjaman Diterima", color: "text-rose-600 dark:text-rose-400" },
+                { label: "Pemasukan Bulan Ini", value: formatRupiah(stats.income), sub: "Bulan Ini", color: "text-emerald-600 dark:text-emerald-400" },
+                { label: "Pengeluaran Bulan Ini", value: formatRupiah(stats.expense), sub: "Bulan Ini", color: "text-rose-600 dark:text-rose-400" },
               ].map((s) => (
                 <div key={s.label} className="border-2 border-border bg-card p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] flex flex-col justify-between">
                   <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">{s.label}</span>
@@ -317,6 +365,39 @@ export default function FinanceDashboardPage() {
                       })}
                     </div>
                   )}
+
+                  {/* EMERGENCY FUND CALLOUT */}
+                  {(() => {
+                    const emergencyGoal = goals.find((g) => g.title.toLowerCase().includes("darurat"));
+                    if (!emergencyGoal) return null;
+                    const pct = emergencyGoal.targetAmount > 0 ? Math.round((emergencyGoal.currentAmount / emergencyGoal.targetAmount) * 100) : 0;
+                    const suggestedAddition = Math.max(0, (emergencyGoal.targetAmount - emergencyGoal.currentAmount) * 0.1);
+
+                    return (
+                      <div className="border-2 border-border p-4 bg-rose-500/10 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] mt-6 font-mono">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xl p-1 border border-border bg-card">🛡️</span>
+                          <div>
+                            <h4 className="font-bold text-xs uppercase text-rose-700 dark:text-rose-400">Dana Darurat ({pct}%)</h4>
+                            <p className="text-[9px] text-muted-foreground">Rekomendasi Bulanan</p>
+                          </div>
+                        </div>
+                        <div className="w-full h-2 bg-muted border border-border">
+                          <div
+                            className="h-full bg-rose-600 transition-all duration-300"
+                            style={{ width: `${Math.min(100, pct)}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-[8px] text-muted-foreground mt-1">
+                          <span>{formatRupiah(emergencyGoal.currentAmount)} terkumpul</span>
+                          <span>Target: {formatRupiah(emergencyGoal.targetAmount)}</span>
+                        </div>
+                        <p className="text-[9px] text-foreground leading-relaxed mt-3 pt-2 border-t border-border/10">
+                          💡 Disarankan menambah sebesar <strong className="text-rose-600 dark:text-rose-400">{formatRupiah(suggestedAddition)}</strong> bulan ini untuk mencapai target ideal!
+                        </p>
+                      </div>
+                    );
+                  })()}
                 </div>
 
               </div>

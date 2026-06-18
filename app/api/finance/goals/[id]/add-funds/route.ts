@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { updateGoalProgress } from "@/lib/goals";
+import { sendTransactionEmailAlert } from "@/lib/notification-engine";
 import { NextResponse } from "next/server";
 
 export async function POST(
@@ -71,7 +72,7 @@ export async function POST(
     }
 
     // Automatically log a transaction of category "Lainnya"
-    await prisma.transaction.create({
+    const newTx = await prisma.transaction.create({
       data: {
         userId,
         type: amount > 0 ? "EXPENSE" : "INCOME",
@@ -83,6 +84,15 @@ export async function POST(
           : `Penarikan tabungan dari target: ${goal.title}`,
       },
     });
+
+    // Trigger email alert
+    (async () => {
+      try {
+        await sendTransactionEmailAlert(userId, newTx.id);
+      } catch (err) {
+        console.error("Failed sending transaction email:", err);
+      }
+    })();
 
     // Update parent Goal progress if linked
     if (updatedGoal.goalId) {
