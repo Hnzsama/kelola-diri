@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useConfirm } from "@/components/ui/confirm-modal";
+import { DatePicker } from "@/components/ui/date-picker";
+import { CardGridSkeleton } from "@/components/ui/page-skeleton";
 
 interface LifeGoal {
   id: string;
@@ -318,9 +320,7 @@ export default function SavingsGoalsPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex h-[40vh] items-center justify-center text-muted-foreground font-mono">
-          Memuat target tabungan...
-        </div>
+        <CardGridSkeleton count={3} />
       ) : goals.length === 0 ? (
         <div className="border-2 border-dashed border-border p-12 text-center bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
           <div className="text-5xl mb-4">🎯</div>
@@ -496,12 +496,7 @@ export default function SavingsGoalsPage() {
               {/* Deadline */}
               <div>
                 <label className="block font-mono font-bold text-[10px] uppercase text-muted-foreground mb-1">Tenggat Waktu / Deadline</label>
-                <input
-                  type="date"
-                  value={deadline}
-                  onChange={(e) => setDeadline(e.target.value)}
-                  className="w-full border-2 border-border bg-background p-2.5 font-mono text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none"
-                />
+                <DatePicker value={deadline} onChange={setDeadline} />
               </div>
 
               {/* Linked Life Goal */}
@@ -612,12 +607,7 @@ export default function SavingsGoalsPage() {
               {/* Deadline */}
               <div>
                 <label className="block font-mono font-bold text-[10px] uppercase text-muted-foreground mb-1">Tenggat Waktu / Deadline</label>
-                <input
-                  type="date"
-                  value={deadline}
-                  onChange={(e) => setDeadline(e.target.value)}
-                  className="w-full border-2 border-border bg-background p-2.5 font-mono text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none"
-                />
+                <DatePicker value={deadline} onChange={setDeadline} />
               </div>
 
               {/* Linked Life Goal */}

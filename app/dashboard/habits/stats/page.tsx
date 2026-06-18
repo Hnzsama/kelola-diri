@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { calculateStreaks, calculateCompletionRate } from "@/lib/habit-utils";
 import Link from "next/link";
+import { DashboardSkeleton } from "@/components/ui/page-skeleton";
 
 interface HabitLog {
   date: string;
@@ -79,11 +80,7 @@ export default function StatsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">
-        Memuat statistik habit tracker...
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (

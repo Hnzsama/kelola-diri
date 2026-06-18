@@ -7,6 +7,7 @@ import { calculateStreaks } from "@/lib/habit-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
+import { TableSkeleton } from "@/components/ui/page-skeleton";
 
 interface HabitLog {
   date: string;
@@ -200,13 +201,7 @@ export default function ChecklistPage() {
     return habits.filter((h) => !h.categoryId && h.isActive);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">
-        Memuat checklist harian...
-      </div>
-    );
-  }
+  if (isLoading) return <TableSkeleton />;
 
   return (
     <div className="w-full px-4 lg:px-6">

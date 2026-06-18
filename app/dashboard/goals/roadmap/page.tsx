@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useConfirm } from "@/components/ui/confirm-modal";
+import { DashboardSkeleton } from "@/components/ui/page-skeleton";
 
 interface Milestone {
   id: string;
@@ -277,11 +278,7 @@ function RoadmapContent() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">
-        Memuat roadmap goal...
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (goals.length === 0) {
@@ -535,7 +532,7 @@ function RoadmapContent() {
 
 export default function GoalRoadmapPage() {
   return (
-    <Suspense fallback={<div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">Memuat roadmap...</div>}>
+    <Suspense fallback={<DashboardSkeleton />}>
       <RoadmapContent />
     </Suspense>
   );

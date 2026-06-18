@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { useConfirm } from "@/components/ui/confirm-modal";
+import { DatePicker } from "@/components/ui/date-picker";
+import { DashboardSkeleton } from "@/components/ui/page-skeleton";
 
 interface Membership {
   organizationId: string;
@@ -339,7 +341,7 @@ export default function OrgEventsPage() {
     return filteredEvents.filter(ev => ev.date.startsWith(dateStr));
   };
 
-  if (isLoading) return <div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">Memuat agenda kegiatan...</div>;
+  if (isLoading) return <DashboardSkeleton />;
 
   return (
     <div className="w-full px-4 lg:px-6">
@@ -403,11 +405,11 @@ export default function OrgEventsPage() {
             </Field>
             <Field>
               <FieldLabel>Tanggal Mulai *</FieldLabel>
-              <Input type="date" value={fDate} onChange={e => setFDate(e.target.value)} required />
+              <DatePicker value={fDate || ""} onChange={setFDate} />
             </Field>
             <Field>
               <FieldLabel>Tanggal Selesai (opsional)</FieldLabel>
-              <Input type="date" value={fEndDate} onChange={e => setFEndDate(e.target.value)} />
+              <DatePicker value={fEndDate || ""} onChange={setFEndDate} />
             </Field>
             <Field>
               <FieldLabel>Lokasi</FieldLabel>

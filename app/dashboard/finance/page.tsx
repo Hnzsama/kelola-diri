@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { DatePicker } from "@/components/ui/date-picker";
+import { DashboardSkeleton } from "@/components/ui/page-skeleton";
 
 interface BudgetVsSpent {
   categoryId: string;
@@ -156,13 +158,7 @@ export default function FinanceDashboardPage() {
     }).format(val);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">
-        Memuat dashboard keuangan...
-      </div>
-    );
-  }
+  if (isLoading) return <DashboardSkeleton />;
 
   const hasData = stats && (stats.income > 0 || stats.expense > 0 || goals.length > 0);
 
@@ -389,12 +385,7 @@ export default function FinanceDashboardPage() {
                   {/* Date */}
                   <div>
                     <label className="block font-mono font-bold text-[10px] uppercase text-muted-foreground mb-1">Tanggal</label>
-                    <input
-                      type="date"
-                      value={txDate}
-                      onChange={(e) => setTxDate(e.target.value)}
-                      className="w-full border-2 border-border bg-background p-2 font-mono text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] focus:outline-none"
-                    />
+                    <DatePicker value={txDate} onChange={setTxDate} />
                   </div>
 
                   {/* Description */}

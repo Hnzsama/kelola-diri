@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useConfirm } from "@/components/ui/confirm-modal";
+import { DatePicker } from "@/components/ui/date-picker";
+import { CardGridSkeleton } from "@/components/ui/page-skeleton";
 
 interface BudgetVsSpent {
   categoryId: string;
@@ -377,9 +379,7 @@ export default function BudgetLimitsPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex h-[40vh] items-center justify-center text-muted-foreground font-mono">
-          Memuat data anggaran...
-        </div>
+        <CardGridSkeleton count={3} />
       ) : (
         stats && (
           <div className="space-y-8 mb-8">
@@ -738,12 +738,7 @@ export default function BudgetLimitsPage() {
               {/* Date */}
               <div>
                 <label className="block font-mono font-bold text-[10px] uppercase text-muted-foreground mb-1">Tanggal</label>
-                <input
-                  type="date"
-                  value={quickAddDate}
-                  onChange={(e) => setQuickAddDate(e.target.value)}
-                  className="w-full border-2 border-border bg-background p-2 font-mono text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none"
-                />
+                <DatePicker value={quickAddDate} onChange={setQuickAddDate} />
               </div>
 
               {/* Description */}

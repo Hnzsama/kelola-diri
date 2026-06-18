@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useConfirm } from "@/components/ui/confirm-modal";
+import { TableSkeleton } from "@/components/ui/page-skeleton";
 
 interface OrgEvent {
   id: string;
@@ -77,7 +78,7 @@ export default function OrgArchivePage() {
     } catch (e: any) { toast.error(e.message || "Gagal"); }
   };
 
-  if (isLoading) return <div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">Memuat arsip kegiatan...</div>;
+  if (isLoading) return <TableSkeleton />;
 
   return (
     <div className="w-full px-4 lg:px-6">

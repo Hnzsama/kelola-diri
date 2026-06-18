@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ui/confirm-modal";
+import { DatePicker } from "@/components/ui/date-picker";
+import { TableSkeleton } from "@/components/ui/page-skeleton";
 
 interface FinanceCategory {
   id: string;
@@ -238,9 +240,7 @@ export default function TransactionsHistoryPage() {
 
       {/* TRANSACTIONS TABLE */}
       {isLoading ? (
-        <div className="flex h-[30vh] items-center justify-center text-muted-foreground font-mono">
-          Memuat riwayat transaksi...
-        </div>
+        <TableSkeleton />
       ) : filteredTransactions.length === 0 ? (
         <div className="border-2 border-dashed border-border p-12 text-center bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
           <p className="text-sm font-mono text-muted-foreground uppercase">Tidak ada catatan transaksi untuk periode ini.</p>
@@ -373,12 +373,7 @@ export default function TransactionsHistoryPage() {
               {/* Date */}
               <div>
                 <label className="block font-mono font-bold text-[10px] uppercase text-muted-foreground mb-1">Tanggal</label>
-                <input
-                  type="date"
-                  value={editDate}
-                  onChange={(e) => setEditDate(e.target.value)}
-                  className="w-full border-2 border-border bg-background p-2.5 font-mono text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none"
-                />
+                <DatePicker value={editDate} onChange={setEditDate} />
               </div>
 
               {/* Description */}

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { DashboardSkeleton } from "@/components/ui/page-skeleton";
 
 interface Semester {
   id: string;
@@ -148,13 +148,7 @@ export default function AcademicDashboardPage() {
     return "border-l-4 border-l-blue-500";
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">
-        Memuat dashboard akademik...
-      </div>
-    );
-  }
+  if (isLoading) return <DashboardSkeleton />;
 
   return (
     <div className="w-full px-4 lg:px-6">

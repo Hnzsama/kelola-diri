@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useConfirm } from "@/components/ui/confirm-modal";
+import { CardGridSkeleton } from "@/components/ui/page-skeleton";
 
 interface FinanceCategory {
   id: string;
@@ -178,9 +179,7 @@ export default function CategoriesPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex h-[40vh] items-center justify-center text-muted-foreground font-mono">
-          Memuat data kategori...
-        </div>
+        <CardGridSkeleton />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 items-start">
           {/* LEFT: CATEGORIES LIST */}

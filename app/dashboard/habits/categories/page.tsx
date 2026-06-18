@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
+import { CardGridSkeleton } from "@/components/ui/page-skeleton";
 
 interface Category {
   id: string;
@@ -134,13 +135,7 @@ export default function CategoriesPage() {
     setColor(PRESET_COLORS[0].value);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">
-        Memuat data kategori...
-      </div>
-    );
-  }
+  if (isLoading) return <CardGridSkeleton count={3} />;
 
   return (
     <div className="w-full px-4 lg:px-6">

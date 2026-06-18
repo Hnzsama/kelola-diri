@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { DashboardSkeleton } from "@/components/ui/page-skeleton";
 
 interface Organization {
   id: string;
@@ -139,13 +140,7 @@ export default function OrgDashboardPage() {
     })
     .slice(0, 5);
 
-  if (isLoading) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">
-        Memuat dashboard organisasi...
-      </div>
-    );
-  }
+  if (isLoading) return <DashboardSkeleton />;
 
   const isEmpty = memberships.length === 0;
 

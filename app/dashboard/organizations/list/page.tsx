@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { useConfirm } from "@/components/ui/confirm-modal";
+import { CardGridSkeleton } from "@/components/ui/page-skeleton";
 
 interface Organization {
   id: string;
@@ -112,7 +113,7 @@ export default function OrgListPage() {
     } catch (e: any) { toast.error(e.message || "Gagal"); }
   };
 
-  if (isLoading) return <div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">Memuat daftar organisasi...</div>;
+  if (isLoading) return <CardGridSkeleton count={3} />;
 
   return (
     <div className="w-full px-4 lg:px-6">

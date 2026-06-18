@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { DashboardSkeleton } from "@/components/ui/page-skeleton";
 
 interface Goal {
   id: string;
@@ -90,11 +91,7 @@ export default function GoalDashboardPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">
-        Memuat dashboard goal...
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   const hasGoals = stats && (stats.activeCount > 0 || stats.achievedCount > 0);

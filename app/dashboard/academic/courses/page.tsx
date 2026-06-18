@@ -9,6 +9,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
+import { TableSkeleton } from "@/components/ui/page-skeleton";
 
 interface Semester {
   id: string;
@@ -397,9 +398,7 @@ export default function CoursesPage() {
       )}
 
       {isLoading ? (
-        <div className="flex h-[30vh] items-center justify-center text-muted-foreground font-mono">
-          Memuat data mata kuliah...
-        </div>
+        <TableSkeleton />
       ) : courses.length === 0 ? (
         <div className="border-2 border-dashed border-border p-12 text-center bg-card">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="mx-auto size-12 text-muted-foreground mb-4">

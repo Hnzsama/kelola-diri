@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { DashboardSkeleton } from "@/components/ui/page-skeleton";
 import { calculateStreaks, calculateCompletionRate } from "@/lib/habit-utils";
 
 interface HabitLog {
@@ -150,13 +151,7 @@ export default function HabitDashboardPage() {
     return "bg-emerald-500 border-emerald-600";
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">
-        Memuat dashboard habit tracker...
-      </div>
-    );
-  }
+  if (isLoading) return <DashboardSkeleton />;
 
   return (
     <div className="w-full px-4 lg:px-6">

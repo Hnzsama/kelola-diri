@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useConfirm } from "@/components/ui/confirm-modal";
+import { DatePicker } from "@/components/ui/date-picker";
+import { CardGridSkeleton } from "@/components/ui/page-skeleton";
 
 interface Milestone {
   id: string;
@@ -274,9 +276,7 @@ export default function ActiveGoalsPage() {
 
       {/* List Grid */}
       {isLoading ? (
-        <div className="flex h-[30vh] items-center justify-center text-muted-foreground font-mono">
-          Memuat daftar goal...
-        </div>
+        <CardGridSkeleton count={3} />
       ) : filteredGoals.length === 0 ? (
         <div className="border-2 border-dashed border-border p-12 text-center bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
           <p className="text-sm font-mono text-muted-foreground uppercase">Tidak ada goal yang cocok dengan kriteria filter.</p>
@@ -445,12 +445,7 @@ export default function ActiveGoalsPage() {
                 {/* Target Date */}
                 <div>
                   <label className="block font-mono font-bold text-xs uppercase text-muted-foreground mb-1">Target Tanggal</label>
-                  <input
-                    type="date"
-                    value={formTargetDate}
-                    onChange={(e) => setFormTargetDate(e.target.value)}
-                    className="w-full border-2 border-border bg-background p-2 font-mono text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] focus:outline-none"
-                  />
+                  <DatePicker value={formTargetDate} onChange={setFormTargetDate} />
                 </div>
               </div>
 
@@ -565,12 +560,7 @@ export default function ActiveGoalsPage() {
                 {/* Target Date */}
                 <div className="col-span-1">
                   <label className="block font-mono font-bold text-[10px] uppercase text-muted-foreground mb-1">Target</label>
-                  <input
-                    type="date"
-                    value={formTargetDate}
-                    onChange={(e) => setFormTargetDate(e.target.value)}
-                    className="w-full border-2 border-border bg-background p-1.5 font-mono text-[10px] uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] focus:outline-none"
-                  />
+                  <DatePicker value={formTargetDate} onChange={setFormTargetDate} />
                 </div>
               </div>
 

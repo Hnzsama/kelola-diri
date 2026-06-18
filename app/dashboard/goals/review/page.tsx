@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
+import { DashboardSkeleton } from "@/components/ui/page-skeleton";
 
 interface Review {
   id: string;
@@ -172,11 +173,7 @@ function ReviewContent() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">
-        Memuat progress review...
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (goals.length === 0) {
@@ -372,7 +369,7 @@ function ReviewContent() {
 
 export default function GoalReviewPage() {
   return (
-    <Suspense fallback={<div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">Memuat review...</div>}>
+    <Suspense fallback={<DashboardSkeleton />}>
       <ReviewContent />
     </Suspense>
   );

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { useConfirm } from "@/components/ui/confirm-modal";
+import { DatePicker } from "@/components/ui/date-picker";
+import { TableSkeleton } from "@/components/ui/page-skeleton";
 
 interface OrgEvent {
   id: string;
@@ -360,7 +362,7 @@ export default function OrgTasksPage() {
 
   const getTasksByStatus = (status: string) => tasks.filter(t => t.status === status);
 
-  if (isLoading) return <div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">Memuat tugas kepanitiaan...</div>;
+  if (isLoading) return <TableSkeleton />;
 
   return (
     <div className="w-full px-4 lg:px-6">
@@ -410,7 +412,7 @@ export default function OrgTasksPage() {
             </Field>
             <Field>
               <FieldLabel>Deadline</FieldLabel>
-              <Input type="date" value={fDueDate} onChange={e => setFDueDate(e.target.value)} />
+              <DatePicker value={fDueDate || ""} onChange={setFDueDate} />
             </Field>
             <Field>
               <FieldLabel>Prioritas</FieldLabel>

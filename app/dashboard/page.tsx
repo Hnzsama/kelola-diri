@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { DashboardSkeleton } from "@/components/ui/page-skeleton";
 
 export default function RootDashboardPage() {
   const [goals, setGoals] = useState<any[]>([]);
@@ -114,13 +115,7 @@ export default function RootDashboardPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center text-muted-foreground font-mono">
-        Memuat dashboard utama Kelola Diri...
-      </div>
-    );
-  }
+  if (isLoading) return <DashboardSkeleton />;
 
   // Date and Greeting configuration
   const today = new Date();
