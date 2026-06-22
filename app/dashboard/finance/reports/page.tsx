@@ -67,23 +67,36 @@ interface Stats {
   upcomingRecurringBillsThisMonth: number;
 }
 
+const INDONESIAN_MONTHS = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+];
+
 export default function ReportsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [transactionsList, setTransactionsList] = useState<any[]>([]);
 
   useEffect(() => {
     setIsMounted(true);
-    fetchData();
+    fetchData(selectedMonth, selectedYear);
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (m: number, y: number) => {
     try {
       setIsLoading(true);
-      const res = await fetch("/api/finance/stats");
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      setStats(data);
+      const [statsRes, txRes] = await Promise.all([
+        fetch(`/api/finance/stats?month=${m}&year=${y}`),
+        fetch(`/api/finance/transactions?month=${m}&year=${y}`),
+      ]);
+      if (!statsRes.ok || !txRes.ok) throw new Error();
+      const statsData = await statsRes.json();
+      const txData = await txRes.json();
+      setStats(statsData);
+      setTransactionsList(txData);
     } catch {
       toast.error("Gagal memuat laporan keuangan");
     } finally {
@@ -111,12 +124,8 @@ export default function ReportsPage() {
       const ExcelJS = await import("exceljs");
       const workbook = new ExcelJS.Workbook();
 
-      const INDONESIAN_MONTHS = [
-        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-      ];
-      const currentMonthName = INDONESIAN_MONTHS[new Date().getMonth()];
-      const currentYear = new Date().getFullYear();
+      const currentMonthName = INDONESIAN_MONTHS[selectedMonth - 1];
+      const currentYear = selectedYear;
 
       // Fetch transaction list for this month
       const txRes = await fetch(`/api/finance/transactions?month=${new Date().getMonth() + 1}&year=${currentYear}`);
@@ -488,7 +497,37 @@ export default function ReportsPage() {
             Analisis visual alokasi pengeluaran, kesehatan finansial, dan audit cashflow bulanan.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Month & Year Filter selectors */}
+          <div className="flex items-center gap-2 border-2 border-border bg-card px-3 py-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] font-mono text-xs">
+            <span className="font-bold uppercase text-[9px] text-muted-foreground">Periode:</span>
+            <select
+              value={selectedMonth}
+              onChange={(e) => {
+                const m = parseInt(e.target.value);
+                setSelectedMonth(m);
+                fetchData(m, selectedYear);
+              }}
+              className="border border-border px-1.5 py-0.5 bg-background font-bold focus:outline-none cursor-pointer"
+            >
+              {INDONESIAN_MONTHS.map((name, idx) => (
+                <option key={idx} value={idx + 1}>{name}</option>
+              ))}
+            </select>
+            <select
+              value={selectedYear}
+              onChange={(e) => {
+                const y = parseInt(e.target.value);
+                setSelectedYear(y);
+                fetchData(selectedMonth, y);
+              }}
+              className="border border-border px-1.5 py-0.5 bg-background font-bold focus:outline-none cursor-pointer"
+            >
+              {[2024, 2025, 2026, 2027, 2028].map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
           <button
             onClick={handleExportExcel}
             className="px-4 py-2 border-2 border-border font-bold text-xs uppercase bg-emerald-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-[2px] transition-all cursor-pointer"
@@ -769,6 +808,61 @@ export default function ReportsPage() {
 
         </div>
 
+      </div>
+
+      {/* TRANSACTION HISTORY TABLE */}
+      <div className="border-2 border-black bg-card p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] mt-8 font-mono print:shadow-none">
+        <h3 className="font-extrabold text-sm uppercase tracking-tight border-b-2 border-black pb-3 mb-5">
+          📝 Riwayat Transaksi Lunas Bulan Ini
+        </h3>
+        {transactionsList.length === 0 ? (
+          <p className="text-xs text-muted-foreground italic text-center py-4">Belum ada transaksi di bulan ini.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left border-collapse">
+              <thead>
+                <tr className="border-b-2 border-black bg-muted/40 font-bold">
+                  <th className="py-2 px-3">Tanggal</th>
+                  <th className="py-2 px-3">Kategori</th>
+                  <th className="py-2 px-3">Keterangan</th>
+                  <th className="py-2 px-3">Metode Uang</th>
+                  <th className="py-2 px-3">Tipe</th>
+                  <th className="py-2 px-3 text-right">Nominal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactionsList.map((tx: any) => {
+                  const dDate = new Date(tx.date);
+                  const isIncome = tx.type === "INCOME";
+                  return (
+                    <tr key={tx.id} className="border-b border-border hover:bg-muted/10">
+                      <td className="py-2.5 px-3">
+                        {dDate.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                      </td>
+                      <td className="py-2.5 px-3 font-semibold">
+                        {tx.category ? `${tx.category.icon} ${tx.category.name}` : "Lainnya"}
+                      </td>
+                      <td className="py-2.5 px-3 truncate max-w-xs" title={tx.description}>
+                        {tx.description || "-"}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <span className={`px-1.5 py-0.5 border text-[9px] font-bold uppercase tracking-wider ${tx.paymentMethod === "NON_TUNAI" ? "bg-teal-500/10 border-teal-400/30 text-teal-700 dark:text-teal-400" : "bg-amber-500/10 border-amber-400/30 text-amber-700 dark:text-amber-400"}`}>
+                          {tx.paymentMethod === "NON_TUNAI" ? "Non-Tunai 💳" : "Tunai 💵"}
+                        </span>
+                      </td>
+                      <td className={`py-2.5 px-3 font-bold ${isIncome ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                        {isIncome ? "INCOME" : "EXPENSE"}
+                      </td>
+                      <td className={`py-2.5 px-3 text-right font-extrabold ${isIncome ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                        {isIncome ? "+" : "-"} {formatRupiah(tx.amount)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
