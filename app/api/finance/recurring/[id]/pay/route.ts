@@ -25,6 +25,32 @@ export async function POST(
       return NextResponse.json({ error: "Tagihan tidak ditemukan" }, { status: 404 });
     }
 
+    // Check if already paid this month
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const endOfMonth = new Date();
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+    endOfMonth.setDate(0);
+    endOfMonth.setHours(23, 59, 59, 999);
+
+    const existingTx = await prisma.transaction.findFirst({
+      where: {
+        userId,
+        type: "EXPENSE",
+        date: {
+          gte: startOfMonth,
+          lte: endOfMonth,
+        },
+        description: `Pembayaran tagihan berulang: ${bill.name}`,
+      },
+    });
+
+    if (existingTx) {
+      return NextResponse.json({ error: "Tagihan ini sudah dibayar pada bulan ini" }, { status: 400 });
+    }
+
     // Smart category matching
     const billNameLower = bill.name.toLowerCase();
     let targetCategoryName = "Lainnya";

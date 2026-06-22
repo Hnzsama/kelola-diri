@@ -11,12 +11,45 @@ export async function GET(req: Request) {
     }
 
     const userId = (session.user as any).id;
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const endOfMonth = new Date();
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+    endOfMonth.setDate(0);
+    endOfMonth.setHours(23, 59, 59, 999);
+
+    const paidTransactions = await prisma.transaction.findMany({
+      where: {
+        userId,
+        type: "EXPENSE",
+        date: {
+          gte: startOfMonth,
+          lte: endOfMonth,
+        },
+        description: {
+          startsWith: "Pembayaran tagihan berulang:",
+        },
+      },
+    });
+
     const bills = await prisma.recurringBill.findMany({
       where: { userId },
       orderBy: { dueDay: "asc" },
     });
 
-    return NextResponse.json(bills);
+    const billsWithPaidStatus = bills.map(bill => {
+      const isPaidThisMonth = paidTransactions.some(
+        tx => tx.description === `Pembayaran tagihan berulang: ${bill.name}`
+      );
+      return {
+        ...bill,
+        isPaidThisMonth,
+      };
+    });
+
+    return NextResponse.json(billsWithPaidStatus);
   } catch (error: any) {
     console.error("[RECURRING_GET_ERROR]", error);
     return NextResponse.json(

@@ -11,6 +11,7 @@ interface RecurringBill {
   amount: number;
   dueDay: number;
   isActive: boolean;
+  isPaidThisMonth?: boolean;
 }
 
 export default function RecurringBillsPage() {
@@ -101,6 +102,7 @@ export default function RecurringBillsPage() {
       }
 
       toast.success(`Berhasil membayar tagihan ${bill.name}! Transaksi dicatat otomatis.`);
+      fetchBills();
     } catch (error: any) {
       toast.error(error.message || "Gagal mencatat pembayaran");
     }
@@ -276,10 +278,10 @@ export default function RecurringBillsPage() {
                     <div className="flex flex-wrap gap-2 pt-2 border-t border-border/10">
                       <button
                         onClick={() => handlePay(bill)}
-                        disabled={!bill.isActive}
+                        disabled={!bill.isActive || bill.isPaidThisMonth}
                         className="px-2.5 py-1.5 border-2 border-border text-[10px] font-mono font-bold uppercase bg-background shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-[1px] active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                       >
-                        Bayar 💳
+                        {bill.isPaidThisMonth ? "Sudah Dibayar ✓" : "Bayar 💳"}
                       </button>
                       <button
                         onClick={() => handleToggleActive(bill)}

@@ -132,10 +132,30 @@ export async function GET(req: Request) {
     const recurringBills = await prisma.recurringBill.findMany({
       where: { userId, isActive: true }
     });
+
+    const paidBillsThisMonth = await prisma.transaction.findMany({
+      where: {
+        userId,
+        type: "EXPENSE",
+        date: {
+          gte: new Date(today.getFullYear(), today.getMonth(), 1),
+          lte: endOfMonth,
+        },
+        description: {
+          startsWith: "Pembayaran tagihan berulang:",
+        },
+      },
+    });
+
+    const paidBillNames = paidBillsThisMonth.map(tx => {
+      return tx.description ? tx.description.replace("Pembayaran tagihan berulang: ", "") : "";
+    });
+
+    const unpaidRecurringBills = recurringBills.filter(
+      b => !paidBillNames.includes(b.name)
+    );
     
-    const upcomingRecurringBillsThisMonth = recurringBills
-      .filter(b => b.dueDay >= currentDay && b.dueDay <= endOfMonth.getDate())
-      .reduce((sum, b) => sum + b.amount, 0);
+    const upcomingRecurringBillsThisMonth = unpaidRecurringBills.reduce((sum, b) => sum + b.amount, 0);
 
     const projectedBalance = absoluteBalance + pendingReceivablesThisMonth - pendingDebtsThisMonth - upcomingRecurringBillsThisMonth;
 

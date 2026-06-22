@@ -79,7 +79,7 @@ export function NavUser({
               <HugeiconsIcon icon={MoreVerticalCircle01Icon} strokeWidth={2} className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
+              <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
             align="end"
@@ -102,7 +102,12 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/settings" onClick={handleLinkClick} className="flex items-center gap-2 w-full cursor-pointer">
+                <Link
+                  href="/dashboard/settings"
+                  onClick={handleLinkClick}
+                  className="flex items-center gap-2 w-full cursor-pointer"
+                  data-tour="nav-user-profile"
+                >
                   <HugeiconsIcon icon={UserCircle02Icon} strokeWidth={2} />
                   <span>Profile</span>
                 </Link>
@@ -117,7 +122,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/login" })}>
+            <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/login" })} data-tour="nav-user-logout">
               <HugeiconsIcon icon={Logout01Icon} strokeWidth={2} />
               Log out
             </DropdownMenuItem>

@@ -28,6 +28,12 @@ export function NavMain({
     }[]
   }[]
 }) {
+  const slug = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+
   const pathname = usePathname()
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
     Akademik: true,
@@ -74,6 +80,7 @@ export function NavMain({
           <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton
               tooltip="Quick Create"
+              data-tour="nav-quick-create"
               className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
             >
               <HugeiconsIcon icon={PlusSignCircleIcon} strokeWidth={2} />
@@ -123,7 +130,11 @@ export function NavMain({
                   </SidebarMenuButton>
                 ) : (
                   <SidebarMenuButton asChild tooltip={item.title}>
-                    <Link href={item.url} onClick={handleLinkClick}>
+                    <Link
+                      href={item.url}
+                      onClick={handleLinkClick}
+                      data-tour={`nav-${slug(item.title)}`}
+                    >
                       {item.icon}
                       <span>{item.title}</span>
                     </Link>
@@ -139,6 +150,7 @@ export function NavMain({
                           key={subItem.title}
                           href={subItem.url}
                           onClick={handleLinkClick}
+                          data-tour={`nav-${slug(item.title)}-${slug(subItem.title)}`}
                           className={`text-xs font-semibold py-1 px-2 rounded-[var(--radius)] transition-colors uppercase tracking-wider block ${
                             isActive
                               ? "text-primary bg-primary/10 font-bold border-l-2 border-primary -ml-[2px] rounded-l-none"

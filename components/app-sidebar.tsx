@@ -19,7 +19,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react"
 import { DashboardSquare01Icon, ChartHistogramIcon, UserGroupIcon, Settings05Icon, HelpCircleIcon, SearchIcon, Analytics01Icon, CommandIcon, Target02Icon, CreditCardIcon, Briefcase01Icon } from "@hugeicons/core-free-icons"
 
-const data = {
+export const data = {
   user: {
     name: "shadcn",
     email: "m@example.com",

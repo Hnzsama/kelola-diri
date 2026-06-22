@@ -30,6 +30,12 @@ export function NavSecondary({
     }
   }
 
+  const slug = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
@@ -37,7 +43,11 @@ export function NavSecondary({
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
-                <Link href={item.url} onClick={handleLinkClick}>
+                <Link
+                  href={item.url}
+                  onClick={handleLinkClick}
+                  data-tour={`nav-secondary-${slug(item.title)}`}
+                >
                   {item.icon}
                   <span>{item.title}</span>
                 </Link>
