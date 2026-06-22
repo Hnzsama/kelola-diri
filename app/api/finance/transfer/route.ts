@@ -46,6 +46,40 @@ export async function POST(req: Request) {
     }
 
     const isTunaiToNon = direction === "TUNAI_TO_NON_TUNAI";
+    const sourceMethod = isTunaiToNon ? "TUNAI" : "NON_TUNAI";
+
+    // Calculate current balance of the source payment method
+    const sourceSums = await prisma.transaction.groupBy({
+      by: ["type"],
+      where: {
+        userId,
+        paymentMethod: sourceMethod,
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    let sourceIncome = 0;
+    let sourceExpense = 0;
+
+    for (const group of sourceSums) {
+      const amount = group._sum.amount || 0;
+      if (group.type === "INCOME") {
+        sourceIncome += amount;
+      } else if (group.type === "EXPENSE") {
+        sourceExpense += amount;
+      }
+    }
+
+    const currentSourceBalance = sourceIncome - sourceExpense;
+    if (currentSourceBalance < amountNum) {
+      const sourceName = sourceMethod === "TUNAI" ? "Tunai" : "Non-Tunai";
+      return NextResponse.json(
+        { error: `Saldo ${sourceName} tidak mencukupi untuk melakukan alokasi` },
+        { status: 400 }
+      );
+    }
 
     // Run both queries atomically inside a database transaction
     await prisma.$transaction([
