@@ -40,55 +40,116 @@ export async function GET(req: Request) {
     const prevY = m === 1 ? y - 1 : y;
     const prevStartDate = new Date(prevY, prevM - 1, 1);
     const prevEndDate = new Date(prevY, prevM, 0, 23, 59, 59, 999);
+    const today = new Date();
+    const currentDay = today.getDate();
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
 
-    // Fetch transactions of selected month
-    const transactions = await prisma.transaction.findMany({
-      where: {
-        userId,
-        date: {
-          gte: startDate,
-          lte: endDate,
+    // Fetch all required data concurrently
+    const [
+      transactions,
+      prevMonthExpenseTransactions,
+      budgets,
+      yearlyBudgets,
+      finGoals,
+      transactionSums,
+      pendingDebtsReceivables,
+      recurringBills,
+      paidBillsThisMonth,
+      allPendingDebts,
+      userCategories
+    ] = await Promise.all([
+      // 1. Transactions of selected month
+      prisma.transaction.findMany({
+        where: {
+          userId,
+          date: {
+            gte: startDate,
+            lte: endDate,
+          },
         },
-      },
-    });
-
-    // Fetch transactions of previous month (expenses only for comparisons)
-    const prevMonthExpenseTransactions = await prisma.transaction.findMany({
-      where: {
-        userId,
-        type: "EXPENSE",
-        date: {
-          gte: prevStartDate,
-          lte: prevEndDate,
+      }),
+      // 2. Transactions of previous month (expenses only for comparisons)
+      prisma.transaction.findMany({
+        where: {
+          userId,
+          type: "EXPENSE",
+          date: {
+            gte: prevStartDate,
+            lte: prevEndDate,
+          },
         },
-      },
-    });
+      }),
+      // 3. Budgets for selected month
+      prisma.budget.findMany({
+        where: {
+          userId,
+          month: m,
+          year: y,
+        },
+      }),
+      // 4. All budgets of selected year for category budget history
+      prisma.budget.findMany({
+        where: {
+          userId,
+          year: y,
+        },
+      }),
+      // 5. Savings goals (all time)
+      prisma.financialGoal.findMany({
+        where: { userId },
+        include: {
+          goal: true,
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      // 6. Aggregate sums of all-time transactions for absolute balance
+      prisma.transaction.groupBy({
+        by: ["type"],
+        where: { userId },
+        _sum: {
+          amount: true,
+        },
+      }),
+      // 7. Pending debts/receivables this month
+      prisma.debtReceivable.findMany({
+        where: {
+          userId,
+          status: "PENDING",
+          dueDate: {
+            gte: today,
+            lte: endOfMonth
+          }
+        }
+      }),
+      // 8. Recurring bills
+      prisma.recurringBill.findMany({
+        where: { userId, isActive: true }
+      }),
+      // 9. Paid bills this month
+      prisma.transaction.findMany({
+        where: {
+          userId,
+          type: "EXPENSE",
+          date: {
+            gte: new Date(today.getFullYear(), today.getMonth(), 1),
+            lte: endOfMonth,
+          },
+          description: {
+            startsWith: "Pembayaran tagihan berulang:",
+          },
+        },
+      }),
+      // 10. All pending debts (unbounded timeline for total hutang/piutang cards)
+      prisma.debtReceivable.findMany({
+        where: { userId, status: "PENDING" }
+      }),
+      // 11. Fetch user categories
+      prisma.financeCategory.findMany({
+        where: { userId },
+        orderBy: { createdAt: "asc" },
+      })
+    ]);
 
-    // Fetch budgets for selected month
-    const budgets = await prisma.budget.findMany({
-      where: {
-        userId,
-        month: m,
-        year: y,
-      },
-    });
-
-    // Fetch all budgets of selected year for category budget history
-    const yearlyBudgets = await prisma.budget.findMany({
-      where: {
-        userId,
-        year: y,
-      },
-    });
-
-    // Fetch savings goals (all time)
-    const finGoals = await prisma.financialGoal.findMany({
-      where: { userId },
-      include: {
-        goal: true,
-      },
-      orderBy: { createdAt: "desc" },
-    });
     const totalSavings = finGoals.reduce((sum, fg) => sum + fg.currentAmount, 0);
 
     // Calculate income & expense for current month
@@ -105,47 +166,20 @@ export async function GET(req: Request) {
     // Calculate expense for previous month
     const prevMonthExpense = prevMonthExpenseTransactions.reduce((sum, t) => sum + t.amount, 0);
 
-    // CALCULATE ABSOLUTE ALL-TIME BALANCE & CASHFLOW PROJECTIONS
-    const allTimeTxs = await prisma.transaction.findMany({ where: { userId } });
-    const allTimeIncome = allTimeTxs.filter(t => t.type === "INCOME").reduce((sum, t) => sum + t.amount, 0);
-    const allTimeExpense = allTimeTxs.filter(t => t.type === "EXPENSE").reduce((sum, t) => sum + t.amount, 0);
-    const absoluteBalance = allTimeIncome - allTimeExpense;
-
-    const today = new Date();
-    const currentDay = today.getDate();
-    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
-
-    const pendingDebtsReceivables = await prisma.debtReceivable.findMany({
-      where: {
-        userId,
-        status: "PENDING",
-        dueDate: {
-          gte: today,
-          lte: endOfMonth
-        }
+    // Parse aggregated sums for all-time balance
+    let allTimeIncome = 0;
+    let allTimeExpense = 0;
+    for (const group of transactionSums) {
+      if (group.type === "INCOME") {
+        allTimeIncome = group._sum.amount || 0;
+      } else if (group.type === "EXPENSE") {
+        allTimeExpense = group._sum.amount || 0;
       }
-    });
+    }
+    const absoluteBalance = allTimeIncome - allTimeExpense;
 
     const pendingReceivablesThisMonth = pendingDebtsReceivables.filter(d => d.type === "RECEIVABLE").reduce((sum, d) => sum + d.amount, 0);
     const pendingDebtsThisMonth = pendingDebtsReceivables.filter(d => d.type === "DEBT").reduce((sum, d) => sum + d.amount, 0);
-
-    const recurringBills = await prisma.recurringBill.findMany({
-      where: { userId, isActive: true }
-    });
-
-    const paidBillsThisMonth = await prisma.transaction.findMany({
-      where: {
-        userId,
-        type: "EXPENSE",
-        date: {
-          gte: new Date(today.getFullYear(), today.getMonth(), 1),
-          lte: endOfMonth,
-        },
-        description: {
-          startsWith: "Pembayaran tagihan berulang:",
-        },
-      },
-    });
 
     const paidBillNames = paidBillsThisMonth.map(tx => {
       return tx.description ? tx.description.replace("Pembayaran tagihan berulang: ", "") : "";
@@ -159,19 +193,13 @@ export async function GET(req: Request) {
 
     const projectedBalance = absoluteBalance + pendingReceivablesThisMonth - pendingDebtsThisMonth - upcomingRecurringBillsThisMonth;
 
-    const allPendingDebts = await prisma.debtReceivable.findMany({
-      where: { userId, status: "PENDING" }
-    });
     const totalPiutang = allPendingDebts.filter(d => d.type === "RECEIVABLE").reduce((sum, d) => sum + d.amount, 0);
     const totalHutang = allPendingDebts.filter(d => d.type === "DEBT").reduce((sum, d) => sum + d.amount, 0);
 
-    // Fetch user categories dynamically
-    let userCategories = await prisma.financeCategory.findMany({
-      where: { userId },
-      orderBy: { createdAt: "asc" },
-    });
+    // Final variable check for category initialization
+    let finalCategories = userCategories;
 
-    if (userCategories.length === 0) {
+    if (finalCategories.length === 0) {
       await prisma.financeCategory.createMany({
         data: DEFAULT_CATEGORIES.map((c) => ({
           userId,
@@ -181,14 +209,14 @@ export async function GET(req: Request) {
         })),
       });
 
-      userCategories = await prisma.financeCategory.findMany({
+      finalCategories = await prisma.financeCategory.findMany({
         where: { userId },
         orderBy: { createdAt: "asc" },
       });
     }
 
     // Category breakdown and Budget vs Spent comparison
-    const budgetVsSpent = userCategories.map((cat) => {
+    const budgetVsSpent = finalCategories.map((cat) => {
       const budgetObj = budgets.find((b) => b.categoryId === cat.id);
       const budgetLimit = budgetObj ? budgetObj.amount : 0;
       
