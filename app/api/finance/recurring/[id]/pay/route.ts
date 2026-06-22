@@ -17,6 +17,16 @@ export async function POST(
     const { id } = await params;
     const userId = (session.user as any).id;
 
+    let paymentMethod = "TUNAI";
+    try {
+      const body = await req.json();
+      if (body && body.paymentMethod === "NON_TUNAI") {
+        paymentMethod = "NON_TUNAI";
+      }
+    } catch {
+      // ignore
+    }
+
     const bill = await prisma.recurringBill.findFirst({
       where: { id, userId },
     });
@@ -105,6 +115,7 @@ export async function POST(
         type: "EXPENSE",
         amount: bill.amount,
         categoryId: category.id,
+        paymentMethod,
         date: new Date(),
         description: `Pembayaran tagihan berulang: ${bill.name}`,
       },

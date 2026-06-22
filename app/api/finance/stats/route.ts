@@ -104,7 +104,7 @@ export async function GET(req: Request) {
       }),
       // 6. Aggregate sums of all-time transactions for absolute balance
       prisma.transaction.groupBy({
-        by: ["type"],
+        by: ["type", "paymentMethod"],
         where: { userId },
         _sum: {
           amount: true,
@@ -169,14 +169,32 @@ export async function GET(req: Request) {
     // Parse aggregated sums for all-time balance
     let allTimeIncome = 0;
     let allTimeExpense = 0;
+    let tunaiIncome = 0;
+    let tunaiExpense = 0;
+    let nonTunaiIncome = 0;
+    let nonTunaiExpense = 0;
+
     for (const group of transactionSums) {
+      const amount = group._sum.amount || 0;
       if (group.type === "INCOME") {
-        allTimeIncome = group._sum.amount || 0;
+        allTimeIncome += amount;
+        if (group.paymentMethod === "NON_TUNAI") {
+          nonTunaiIncome += amount;
+        } else {
+          tunaiIncome += amount;
+        }
       } else if (group.type === "EXPENSE") {
-        allTimeExpense = group._sum.amount || 0;
+        allTimeExpense += amount;
+        if (group.paymentMethod === "NON_TUNAI") {
+          nonTunaiExpense += amount;
+        } else {
+          tunaiExpense += amount;
+        }
       }
     }
     const absoluteBalance = allTimeIncome - allTimeExpense;
+    const balanceTunai = tunaiIncome - tunaiExpense;
+    const balanceNonTunai = nonTunaiIncome - nonTunaiExpense;
 
     const pendingReceivablesThisMonth = pendingDebtsReceivables.filter(d => d.type === "RECEIVABLE").reduce((sum, d) => sum + d.amount, 0);
     const pendingDebtsThisMonth = pendingDebtsReceivables.filter(d => d.type === "DEBT").reduce((sum, d) => sum + d.amount, 0);
@@ -237,6 +255,8 @@ export async function GET(req: Request) {
     return NextResponse.json({
       balance: currentBalance,
       absoluteBalance,
+      balanceTunai,
+      balanceNonTunai,
       income: totalIncome,
       expense: totalExpense,
       savings: totalSavings,

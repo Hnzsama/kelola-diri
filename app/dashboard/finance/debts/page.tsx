@@ -104,10 +104,19 @@ export default function DebtsPage() {
   const handleTogglePaid = async (debt: Debt) => {
     try {
       const newStatus = debt.status === "PAID" ? "PENDING" : "PAID";
+      let paymentMethod = undefined;
+
+      if (newStatus === "PAID") {
+        const isNonTunai = window.confirm(
+          `Pilih metode pelunasan:\n\n- Klik "OK" untuk NON-TUNAI\n- Klik "Batal" untuk TUNAI`
+        );
+        paymentMethod = isNonTunai ? "NON_TUNAI" : "TUNAI";
+      }
+
       const res = await fetch(`/api/finance/debts/${debt.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus, paymentMethod }),
       });
 
       if (!res.ok) {

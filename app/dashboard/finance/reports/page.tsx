@@ -6,6 +6,42 @@ import { toast } from "sonner";
 import { DashboardSkeleton } from "@/components/ui/page-skeleton";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis } from "recharts";
 
+const convertSvgToPng = async (svgElement: SVGElement): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const svgString = new XMLSerializer().serializeToString(svgElement);
+      const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+      const URL = window.URL || window.webkitURL || window;
+      const blobURL = URL.createObjectURL(svgBlob);
+      
+      const image = new Image();
+      image.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = svgElement.clientWidth || 400;
+        canvas.height = svgElement.clientHeight || 300;
+        const context = canvas.getContext("2d");
+        if (context) {
+          context.fillStyle = "#ffffff";
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          context.drawImage(image, 0, 0);
+          const png = canvas.toDataURL("image/png");
+          resolve(png);
+        } else {
+          reject(new Error("Could not get 2d context"));
+        }
+        URL.revokeObjectURL(blobURL);
+      };
+      image.onerror = (err) => {
+        reject(err);
+        URL.revokeObjectURL(blobURL);
+      };
+      image.src = blobURL;
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
 interface BudgetVsSpent {
   categoryId: string;
   categoryName: string;
@@ -66,6 +102,123 @@ export default function ReportsPage() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleExportExcel = async () => {
+    if (!stats) return;
+    const toastId = toast.loading("Memproses export Excel & Grafik...");
+    try {
+      const ExcelJS = await import("exceljs");
+      const workbook = new ExcelJS.Workbook();
+      
+      // Sheet 1: Ringkasan
+      const sheet1 = workbook.addWorksheet("Ringkasan Cashflow");
+      
+      sheet1.columns = [
+        { header: "Deskripsi / Item", key: "desc", width: 40 },
+        { header: "Nominal / Keterangan", key: "val", width: 25 },
+      ];
+      
+      // Title row
+      const titleRow = sheet1.addRow(["LAPORAN FINANSIAL PERSONAL", ""]);
+      titleRow.font = { name: "Arial", size: 14, bold: true };
+      sheet1.addRow([`Dicetak pada: ${new Date().toLocaleDateString("id-ID")}`, ""]);
+      sheet1.addRow([]);
+      
+      // Cashflow Table
+      const cfHeader = sheet1.addRow(["ARUS KAS BULAN INI", ""]);
+      cfHeader.font = { bold: true };
+      sheet1.addRow(["Pemasukan (Income)", stats.income]);
+      sheet1.addRow(["Pengeluaran (Expense)", stats.expense]);
+      sheet1.addRow(["Arus Kas Bersih (Net Cash)", stats.balance]);
+      sheet1.addRow([]);
+      
+      const projHeader = sheet1.addRow(["KOMITMEN & PROYEKSI", ""]);
+      projHeader.font = { bold: true };
+      sheet1.addRow(["Saldo Sebenarnya", stats.absoluteBalance]);
+      sheet1.addRow(["Komitmen Tagihan Berulang", stats.upcomingRecurringBillsThisMonth]);
+      sheet1.addRow(["Komitmen Piutang", stats.pendingReceivablesThisMonth]);
+      sheet1.addRow(["Komitmen Hutang", stats.pendingDebtsThisMonth]);
+      
+      const projBalRow = sheet1.addRow(["Proyeksi Saldo Akhir Bulan", stats.projectedBalance]);
+      projBalRow.font = { bold: true };
+      sheet1.addRow([]);
+      
+      // Budget realization
+      const budgetHeader = sheet1.addRow(["REALISASI ANGGARAN PER KATEGORI", "", "", "", ""]);
+      budgetHeader.font = { bold: true };
+      
+      const tableHeader = sheet1.addRow(["Kategori", "Batas Budget", "Realisasi", "Sisa / Lebih", "Status"]);
+      tableHeader.font = { bold: true };
+      
+      stats.budgetVsSpent.forEach((c) => {
+        const diff = c.budget - c.spent;
+        const status = c.budget === 0 ? "No Limit" : diff < 0 ? "OVER" : "AMAN";
+        sheet1.addRow([
+          `${c.categoryIcon} ${c.categoryName}`,
+          c.budget > 0 ? c.budget : "-",
+          c.spent,
+          c.budget > 0 ? diff : "-",
+          status
+        ]);
+      });
+
+      // Format currency cells
+      sheet1.eachRow((row, rowNumber) => {
+        if (rowNumber > 4 && rowNumber < 15) {
+          const cell = row.getCell(2);
+          if (typeof cell.value === "number") {
+            cell.numFmt = '"Rp"#,##0';
+          }
+        }
+      });
+
+      // Sheet 2: Grafik
+      const sheet2 = workbook.addWorksheet("Visualisasi Grafik");
+      const titleRow2 = sheet2.addRow(["GRAFIK DISTRIBUSI & REALISASI ANGGARAN", ""]);
+      titleRow2.font = { name: "Arial", size: 14, bold: true };
+      sheet2.addRow([]);
+
+      // Try capturing Recharts SVG elements
+      const wrappers = document.querySelectorAll(".recharts-wrapper");
+      
+      for (let i = 0; i < wrappers.length; i++) {
+        const svg = wrappers[i].querySelector("svg");
+        if (svg) {
+          try {
+            const pngDataUrl = await convertSvgToPng(svg as any);
+            const base64Data = pngDataUrl.replace(/^data:image\/png;base64,/, "");
+            const imageId = workbook.addImage({
+              base64: base64Data,
+              extension: 'png',
+            });
+            sheet2.addImage(imageId, {
+              tl: { col: 1, row: 3 + (i * 18) },
+              ext: { width: 500, height: 350 }
+            });
+          } catch (e) {
+            console.error("Gagal menukar grafik ke gambar:", e);
+          }
+        }
+      }
+
+      // Generate blob and download
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `Laporan_Keuangan_${new Date().getFullYear()}_${new Date().getMonth() + 1}.xlsx`;
+      anchor.click();
+      window.URL.revokeObjectURL(url);
+      
+      toast.dismiss(toastId);
+      toast.success("Excel berhasil diexport!");
+    } catch (error) {
+      console.error(error);
+      toast.dismiss(toastId);
+      toast.error("Gagal mengexport Excel");
+    }
   };
 
   if (isLoading || !stats) return <DashboardSkeleton />;
@@ -180,6 +333,12 @@ export default function ReportsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={handleExportExcel}
+            className="px-4 py-2 border-2 border-border font-bold text-xs uppercase bg-emerald-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-[2px] transition-all cursor-pointer"
+          >
+            Export Excel 📊
+          </button>
           <button
             onClick={handlePrint}
             className="px-4 py-2 border-2 border-border font-bold text-xs uppercase bg-yellow-400 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-[2px] transition-all cursor-pointer"

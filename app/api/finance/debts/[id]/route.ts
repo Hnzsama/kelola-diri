@@ -17,7 +17,7 @@ export async function PATCH(
     const { id } = await params;
     const userId = (session.user as any).id;
     const body = await req.json();
-    const { contact, amount, purpose, dueDate, status } = body;
+    const { contact, amount, purpose, dueDate, status, paymentMethod } = body;
 
     const existingDebt = await prisma.debtReceivable.findFirst({
       where: { id, userId },
@@ -67,6 +67,7 @@ export async function PATCH(
             type: isReceivable ? "INCOME" : "EXPENSE",
             amount: existingDebt.amount,
             categoryId: category.id,
+            paymentMethod: paymentMethod || "TUNAI",
             date: new Date(),
             description: isReceivable
               ? `Pelunasan piutang dari ${existingDebt.contact}: ${existingDebt.purpose}`

@@ -18,6 +18,8 @@ interface BudgetVsSpent {
 interface Stats {
   balance: number;
   absoluteBalance: number;
+  balanceTunai: number;
+  balanceNonTunai: number;
   income: number;
   expense: number;
   savings: number;
@@ -58,6 +60,7 @@ export default function FinanceDashboardPage() {
   const [txAmount, setTxAmount] = useState("");
   const [txCategory, setTxCategory] = useState("");
   const [txDescription, setTxDescription] = useState("");
+  const [txPaymentMethod, setTxPaymentMethod] = useState("TUNAI");
   const getTodayString = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -144,6 +147,7 @@ export default function FinanceDashboardPage() {
           categoryId: txCategory,
           description: txDescription,
           date: txDate || null,
+          paymentMethod: txPaymentMethod,
         }),
       });
 
@@ -156,6 +160,7 @@ export default function FinanceDashboardPage() {
       toast.success("Transaksi berhasil dicatat!");
       setTxAmount("");
       setTxDescription("");
+      setTxPaymentMethod("TUNAI");
       setTxDate(getTodayString());
       fetchDashboardData();
     } catch {
@@ -251,9 +256,11 @@ export default function FinanceDashboardPage() {
             </div>
 
             {/* STATS CARDS */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               {[
                 { label: "Saldo Sebenarnya", value: formatRupiah(stats.absoluteBalance), sub: "Total Kas Tersisa", color: stats.absoluteBalance >= 0 ? "text-blue-600 dark:text-blue-400" : "text-rose-600 dark:text-rose-400" },
+                { label: "Saldo Tunai (Cash)", value: formatRupiah(stats.balanceTunai), sub: "Kas Fisik / Tunai", color: stats.balanceTunai >= 0 ? "text-amber-600 dark:text-amber-400" : "text-rose-600 dark:text-rose-400" },
+                { label: "Saldo Non-Tunai", value: formatRupiah(stats.balanceNonTunai), sub: "Bank & Dompet Digital", color: stats.balanceNonTunai >= 0 ? "text-teal-600 dark:text-teal-400" : "text-rose-600 dark:text-rose-400" },
                 { label: "Total Tabungan", value: formatRupiah(stats.savings), sub: "Akumulasi Dana Khusus", color: "text-purple-600 dark:text-purple-400" },
                 { label: "Piutang Aktif (Piutang)", value: formatRupiah(stats.totalPiutang), sub: "Pemberian Pinjaman", color: "text-emerald-600 dark:text-emerald-400" },
                 { label: "Hutang Aktif (Hutang)", value: formatRupiah(stats.totalHutang), sub: "Pinjaman Diterima", color: "text-rose-600 dark:text-rose-400" },
@@ -432,6 +439,35 @@ export default function FinanceDashboardPage() {
                     >
                       Income 💰
                     </button>
+                  </div>
+
+                  {/* Payment Method Selector */}
+                  <div>
+                    <label className="block font-mono font-bold text-[10px] uppercase text-muted-foreground mb-1">Metode Uang</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setTxPaymentMethod("TUNAI")}
+                        className={`py-2 border-2 border-border font-bold font-mono text-xs uppercase transition-all cursor-pointer ${
+                          txPaymentMethod === "TUNAI"
+                            ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] border-amber-500"
+                            : "bg-background hover:bg-muted text-foreground"
+                        }`}
+                      >
+                        💵 Tunai
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTxPaymentMethod("NON_TUNAI")}
+                        className={`py-2 border-2 border-border font-bold font-mono text-xs uppercase transition-all cursor-pointer ${
+                          txPaymentMethod === "NON_TUNAI"
+                            ? "bg-teal-500/10 text-teal-700 dark:text-teal-400 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] border-teal-500"
+                            : "bg-background hover:bg-muted text-foreground"
+                        }`}
+                      >
+                        💳 Non-Tunai
+                      </button>
+                    </div>
                   </div>
 
                   {/* Amount */}

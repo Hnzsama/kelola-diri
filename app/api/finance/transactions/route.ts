@@ -56,7 +56,7 @@ export async function POST(req: Request) {
 
     const userId = (session.user as any).id;
     const body = await req.json();
-    const { type, amount, categoryId, date, description } = body;
+    const { type, amount, categoryId, date, description, paymentMethod } = body;
 
     if (!type || !["INCOME", "EXPENSE"].includes(type)) {
       return NextResponse.json({ error: "Tipe transaksi tidak valid" }, { status: 400 });
@@ -68,6 +68,10 @@ export async function POST(req: Request) {
 
     if (!categoryId) {
       return NextResponse.json({ error: "Kategori transaksi wajib ditentukan" }, { status: 400 });
+    }
+
+    if (paymentMethod && !["TUNAI", "NON_TUNAI"].includes(paymentMethod)) {
+      return NextResponse.json({ error: "Metode pembayaran tidak valid" }, { status: 400 });
     }
 
     const categoryExists = await prisma.financeCategory.findFirst({
@@ -85,6 +89,7 @@ export async function POST(req: Request) {
         type,
         amount,
         categoryId,
+        paymentMethod: paymentMethod || "TUNAI",
         date: txDate,
         description: description ? description.trim() : null,
       },

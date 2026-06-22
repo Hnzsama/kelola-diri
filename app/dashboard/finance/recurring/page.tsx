@@ -91,9 +91,16 @@ export default function RecurringBillsPage() {
   };
 
   const handlePay = async (bill: RecurringBill) => {
+    const isNonTunai = window.confirm(
+      `Pilih metode pembayaran untuk ${bill.name}:\n\n- Klik "OK" untuk NON-TUNAI\n- Klik "Batal" untuk TUNAI`
+    );
+    const paymentMethod = isNonTunai ? "NON_TUNAI" : "TUNAI";
+
     try {
       const res = await fetch(`/api/finance/recurring/${bill.id}/pay`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentMethod }),
       });
 
       if (!res.ok) {
