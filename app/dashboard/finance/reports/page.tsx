@@ -110,74 +110,230 @@ export default function ReportsPage() {
     try {
       const ExcelJS = await import("exceljs");
       const workbook = new ExcelJS.Workbook();
+
+      const INDONESIAN_MONTHS = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+      ];
+      const currentMonthName = INDONESIAN_MONTHS[new Date().getMonth()];
+      const currentYear = new Date().getFullYear();
+
+      // Fetch transaction list for this month
+      const txRes = await fetch(`/api/finance/transactions?month=${new Date().getMonth() + 1}&year=${currentYear}`);
+      const transactionsList = txRes.ok ? await txRes.json() : [];
       
       // Sheet 1: Ringkasan
       const sheet1 = workbook.addWorksheet("Ringkasan Cashflow");
+      sheet1.views = [{ showGridLines: true }];
       
       sheet1.columns = [
         { header: "Deskripsi / Item", key: "desc", width: 40 },
         { header: "Nominal / Keterangan", key: "val", width: 25 },
+        { header: "", key: "c3", width: 15 },
+        { header: "", key: "c4", width: 15 },
+        { header: "", key: "c5", width: 15 },
       ];
       
       // Title row
-      const titleRow = sheet1.addRow(["LAPORAN FINANSIAL PERSONAL", ""]);
-      titleRow.font = { name: "Arial", size: 14, bold: true };
-      sheet1.addRow([`Dicetak pada: ${new Date().toLocaleDateString("id-ID")}`, ""]);
+      const titleCell = sheet1.getCell("A1");
+      titleCell.value = `LAPORAN FINANSIAL PERSONAL - BULAN ${currentMonthName.toUpperCase()} ${currentYear}`;
+      titleCell.font = { name: "Segoe UI", size: 14, bold: true, color: { argb: "FFFFFF" } };
+      titleCell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "4F46E5" },
+      };
+      titleCell.alignment = { vertical: "middle", horizontal: "center" };
+      sheet1.mergeCells("A1:E1");
+      sheet1.getRow(1).height = 35;
+      
+      sheet1.addRow([`Dicetak pada: ${new Date().toLocaleDateString("id-ID")}`, "", "", "", ""]);
       sheet1.addRow([]);
       
       // Cashflow Table
       const cfHeader = sheet1.addRow(["ARUS KAS BULAN INI", ""]);
-      cfHeader.font = { bold: true };
-      sheet1.addRow(["Pemasukan (Income)", stats.income]);
-      sheet1.addRow(["Pengeluaran (Expense)", stats.expense]);
-      sheet1.addRow(["Arus Kas Bersih (Net Cash)", stats.balance]);
+      cfHeader.getCell(1).font = { name: "Segoe UI", bold: true, size: 11, color: { argb: "1E3A8A" } };
+      
+      const rIncome = sheet1.addRow(["Pemasukan (Income)", stats.income]);
+      rIncome.getCell(2).numFmt = '"Rp"#,##0';
+      rIncome.getCell(2).font = { name: "Segoe UI", color: { argb: "16A34A" }, bold: true };
+      
+      const rExpense = sheet1.addRow(["Pengeluaran (Expense)", stats.expense]);
+      rExpense.getCell(2).numFmt = '"Rp"#,##0';
+      rExpense.getCell(2).font = { name: "Segoe UI", color: { argb: "DC2626" }, bold: true };
+      
+      const rNet = sheet1.addRow(["Arus Kas Bersih (Net Cash)", stats.balance]);
+      rNet.getCell(2).numFmt = '"Rp"#,##0';
+      rNet.font = { name: "Segoe UI", bold: true };
+      rNet.getCell(2).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: stats.balance >= 0 ? "DCFCE7" : "FEE2E2" },
+      };
+      
       sheet1.addRow([]);
       
+      // Commitments & Projection Table
       const projHeader = sheet1.addRow(["KOMITMEN & PROYEKSI", ""]);
-      projHeader.font = { bold: true };
-      sheet1.addRow(["Saldo Sebenarnya", stats.absoluteBalance]);
-      sheet1.addRow(["Komitmen Tagihan Berulang", stats.upcomingRecurringBillsThisMonth]);
-      sheet1.addRow(["Komitmen Piutang", stats.pendingReceivablesThisMonth]);
-      sheet1.addRow(["Komitmen Hutang", stats.pendingDebtsThisMonth]);
+      projHeader.getCell(1).font = { name: "Segoe UI", bold: true, size: 11, color: { argb: "1E3A8A" } };
+      
+      const rAbs = sheet1.addRow(["Saldo Sebenarnya", stats.absoluteBalance]);
+      rAbs.getCell(2).numFmt = '"Rp"#,##0';
+      
+      const rRec = sheet1.addRow(["Komitmen Tagihan Berulang", stats.upcomingRecurringBillsThisMonth]);
+      rRec.getCell(2).numFmt = '"Rp"#,##0';
+      rRec.getCell(2).font = { color: { argb: "B91C1C" } };
+      
+      const rRecv = sheet1.addRow(["Komitmen Piutang", stats.pendingReceivablesThisMonth]);
+      rRecv.getCell(2).numFmt = '"Rp"#,##0';
+      rRecv.getCell(2).font = { color: { argb: "15803D" } };
+      
+      const rDebt = sheet1.addRow(["Komitmen Hutang", stats.pendingDebtsThisMonth]);
+      rDebt.getCell(2).numFmt = '"Rp"#,##0';
+      rDebt.getCell(2).font = { color: { argb: "B91C1C" } };
       
       const projBalRow = sheet1.addRow(["Proyeksi Saldo Akhir Bulan", stats.projectedBalance]);
-      projBalRow.font = { bold: true };
+      projBalRow.getCell(2).numFmt = '"Rp"#,##0';
+      projBalRow.font = { name: "Segoe UI", bold: true };
+      projBalRow.getCell(2).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FEF9C3" }, // light yellow
+      };
+      
       sheet1.addRow([]);
       
       // Budget realization
       const budgetHeader = sheet1.addRow(["REALISASI ANGGARAN PER KATEGORI", "", "", "", ""]);
-      budgetHeader.font = { bold: true };
+      budgetHeader.getCell(1).font = { name: "Segoe UI", bold: true, size: 11, color: { argb: "1E3A8A" } };
       
       const tableHeader = sheet1.addRow(["Kategori", "Batas Budget", "Realisasi", "Sisa / Lebih", "Status"]);
-      tableHeader.font = { bold: true };
+      tableHeader.eachCell((cell) => {
+        cell.font = { name: "Segoe UI", bold: true, color: { argb: "FFFFFF" }, size: 10 };
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "4F46E5" },
+        };
+        cell.alignment = { vertical: "middle", horizontal: "center" };
+      });
       
-      stats.budgetVsSpent.forEach((c) => {
+      stats.budgetVsSpent.forEach((c, idx) => {
         const diff = c.budget - c.spent;
         const status = c.budget === 0 ? "No Limit" : diff < 0 ? "OVER" : "AMAN";
-        sheet1.addRow([
+        const row = sheet1.addRow([
           `${c.categoryIcon} ${c.categoryName}`,
           c.budget > 0 ? c.budget : "-",
           c.spent,
           c.budget > 0 ? diff : "-",
           status
         ]);
-      });
-
-      // Format currency cells
-      sheet1.eachRow((row, rowNumber) => {
-        if (rowNumber > 4 && rowNumber < 15) {
-          const cell = row.getCell(2);
-          if (typeof cell.value === "number") {
+        
+        const isEven = idx % 2 === 0;
+        row.eachCell((cell, colNum) => {
+          cell.font = { name: "Segoe UI", size: 9 };
+          cell.border = {
+            top: { style: "thin", color: { argb: "E2E8F0" } },
+            left: { style: "thin", color: { argb: "E2E8F0" } },
+            bottom: { style: "thin", color: { argb: "E2E8F0" } },
+            right: { style: "thin", color: { argb: "E2E8F0" } },
+          };
+          if (isEven) {
+            cell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: "F8FAFC" },
+            };
+          }
+          if (colNum >= 2 && colNum <= 4 && typeof cell.value === "number") {
             cell.numFmt = '"Rp"#,##0';
           }
-        }
+          if (colNum === 5) {
+            cell.font = { name: "Segoe UI", bold: true, size: 9, color: { argb: status === "AMAN" ? "16A34A" : status === "OVER" ? "DC2626" : "64748B" } };
+            cell.alignment = { horizontal: "center" };
+          }
+        });
       });
 
-      // Sheet 2: Grafik
-      const sheet2 = workbook.addWorksheet("Visualisasi Grafik");
-      const titleRow2 = sheet2.addRow(["GRAFIK DISTRIBUSI & REALISASI ANGGARAN", ""]);
-      titleRow2.font = { name: "Arial", size: 14, bold: true };
+      // Sheet 2: Daftar Transaksi Detail
+      const sheet2 = workbook.addWorksheet("Daftar Transaksi");
+      sheet2.views = [{ showGridLines: true }];
+      
+      const tTitle = sheet2.getCell("A1");
+      tTitle.value = `DAFTAR TRANSAKSI LENGKAP - BULAN ${currentMonthName.toUpperCase()} ${currentYear}`;
+      tTitle.font = { name: "Segoe UI", size: 12, bold: true, color: { argb: "FFFFFF" } };
+      tTitle.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "0F172A" },
+      };
+      tTitle.alignment = { vertical: "middle", horizontal: "center" };
+      sheet2.mergeCells("A1:F1");
+      sheet2.getRow(1).height = 30;
       sheet2.addRow([]);
+      
+      const txHeader = sheet2.addRow(["Tanggal", "Tipe", "Nominal", "Kategori", "Metode Uang", "Keterangan"]);
+      txHeader.height = 24;
+      txHeader.eachCell((cell) => {
+        cell.font = { name: "Segoe UI", bold: true, color: { argb: "FFFFFF" }, size: 10 };
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "334155" },
+        };
+        cell.alignment = { vertical: "middle", horizontal: "center" };
+      });
+      
+      transactionsList.forEach((tx: any, idx: number) => {
+        const txDate = new Date(tx.date).toLocaleDateString("id-ID");
+        const row = sheet2.addRow([
+          txDate,
+          tx.type === "INCOME" ? "Pemasukan 🟢" : "Pengeluaran 🔴",
+          tx.amount,
+          tx.category ? `${tx.category.icon} ${tx.category.name}` : "Lainnya",
+          tx.paymentMethod === "NON_TUNAI" ? "Non-Tunai 💳" : "Tunai 💵",
+          tx.description || "-"
+        ]);
+        
+        row.height = 20;
+        const isEven = idx % 2 === 0;
+        row.eachCell((cell, colNum) => {
+          cell.font = { name: "Segoe UI", size: 9 };
+          cell.border = {
+            top: { style: "thin", color: { argb: "E2E8F0" } },
+            left: { style: "thin", color: { argb: "E2E8F0" } },
+            bottom: { style: "thin", color: { argb: "E2E8F0" } },
+            right: { style: "thin", color: { argb: "E2E8F0" } },
+          };
+          if (isEven) {
+            cell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: "F8FAFC" },
+            };
+          }
+          if (colNum === 3) {
+            cell.numFmt = '"Rp"#,##0';
+            cell.alignment = { horizontal: "right" };
+          }
+          if (colNum === 2) {
+            cell.font = { name: "Segoe UI", bold: true, size: 9, color: { argb: tx.type === "INCOME" ? "16A34A" : "DC2626" } };
+          }
+        });
+      });
+      
+      sheet2.getColumn(1).width = 15;
+      sheet2.getColumn(2).width = 18;
+      sheet2.getColumn(3).width = 20;
+      sheet2.getColumn(4).width = 20;
+      sheet2.getColumn(5).width = 18;
+      sheet2.getColumn(6).width = 40;
+
+      // Sheet 3: Grafik
+      const sheet3 = workbook.addWorksheet("Visualisasi Grafik");
+      const titleRow3 = sheet3.addRow(["GRAFIK DISTRIBUSI & REALISASI ANGGARAN", ""]);
+      titleRow3.font = { name: "Segoe UI", size: 14, bold: true };
+      sheet3.addRow([]);
 
       // Try capturing Recharts SVG elements
       const wrappers = document.querySelectorAll(".recharts-wrapper");
@@ -192,7 +348,7 @@ export default function ReportsPage() {
               base64: base64Data,
               extension: 'png',
             });
-            sheet2.addImage(imageId, {
+            sheet3.addImage(imageId, {
               tl: { col: 1, row: 3 + (i * 18) },
               ext: { width: 500, height: 350 }
             });
@@ -208,7 +364,7 @@ export default function ReportsPage() {
       const url = window.URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = `Laporan_Keuangan_${new Date().getFullYear()}_${new Date().getMonth() + 1}.xlsx`;
+      anchor.download = `Laporan_Keuangan_${currentMonthName}_${currentYear}.xlsx`;
       anchor.click();
       window.URL.revokeObjectURL(url);
       
