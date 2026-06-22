@@ -16,7 +16,7 @@ export async function PUT(
     const { id } = await params;
     const userId = (session.user as any).id;
     const body = await req.json();
-    const { type, amount, categoryId, date, description } = body;
+    const { type, amount, categoryId, date, description, paymentMethod } = body;
 
     const tx = await prisma.transaction.findFirst({
       where: {
@@ -35,6 +35,10 @@ export async function PUT(
 
     if (amount !== undefined && (typeof amount !== "number" || amount <= 0)) {
       return NextResponse.json({ error: "Jumlah nominal harus berupa angka positif" }, { status: 400 });
+    }
+
+    if (paymentMethod !== undefined && !["TUNAI", "NON_TUNAI"].includes(paymentMethod)) {
+      return NextResponse.json({ error: "Metode pembayaran tidak valid" }, { status: 400 });
     }
 
     if (categoryId !== undefined) {
@@ -57,6 +61,7 @@ export async function PUT(
         ...(categoryId !== undefined ? { categoryId } : {}),
         ...(date !== undefined ? { date: new Date(date) } : {}),
         ...(description !== undefined ? { description: description ? description.trim() : null } : {}),
+        ...(paymentMethod !== undefined ? { paymentMethod } : {}),
       },
       include: {
         category: true,

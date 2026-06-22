@@ -21,6 +21,7 @@ interface Transaction {
   category: FinanceCategory | null;
   date: string;
   description: string | null;
+  paymentMethod: string;
 }
 
 const MONTHS = [
@@ -57,6 +58,7 @@ export default function TransactionsHistoryPage() {
   const [editCategory, setEditCategory] = useState("");
   const [editDate, setEditDate] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editPaymentMethod, setEditPaymentMethod] = useState("TUNAI");
   const [isSaving, setIsSaving] = useState(false);
 
   const { confirmModal, openConfirm } = useConfirm();
@@ -121,6 +123,7 @@ export default function TransactionsHistoryPage() {
     setEditCategory(tx.categoryId);
     setEditDate(tx.date.split("T")[0]);
     setEditDescription(tx.description || "");
+    setEditPaymentMethod(tx.paymentMethod || "TUNAI");
     setIsEditOpen(true);
   };
 
@@ -149,6 +152,7 @@ export default function TransactionsHistoryPage() {
           categoryId: editCategory,
           date: editDate,
           description: editDescription,
+          paymentMethod: editPaymentMethod,
         }),
       });
 
@@ -253,6 +257,7 @@ export default function TransactionsHistoryPage() {
                 <th className="p-3.5 font-extrabold uppercase">Tanggal</th>
                 <th className="p-3.5 font-extrabold uppercase">Kategori</th>
                 <th className="p-3.5 font-extrabold uppercase">Keterangan</th>
+                <th className="p-3.5 font-extrabold uppercase">Metode</th>
                 <th className="p-3.5 font-extrabold uppercase">Tipe</th>
                 <th className="p-3.5 font-extrabold uppercase">Nominal</th>
                 <th className="p-3.5 font-extrabold uppercase text-right">Aksi</th>
@@ -276,6 +281,11 @@ export default function TransactionsHistoryPage() {
                     </td>
                     <td className="p-3.5 truncate max-w-[200px]" title={tx.description || ""}>
                       {tx.description || "—"}
+                    </td>
+                    <td className="p-3.5">
+                      <span className={`px-1.5 py-0.5 border text-[9px] font-bold uppercase tracking-wider ${tx.paymentMethod === "NON_TUNAI" ? "bg-teal-500/10 border-teal-400/30 text-teal-700 dark:text-teal-400" : "bg-amber-500/10 border-amber-400/30 text-amber-700 dark:text-amber-400"}`}>
+                        {tx.paymentMethod === "NON_TUNAI" ? "Non-Tunai 💳" : "Tunai 💵"}
+                      </span>
                     </td>
                     <td className="p-3.5">
                       <span className={`font-bold ${isIncome ? "text-emerald-600" : "text-rose-600"}`}>
@@ -339,6 +349,35 @@ export default function TransactionsHistoryPage() {
                 >
                   Income 💰
                 </button>
+              </div>
+
+              {/* Payment Method Selector */}
+              <div>
+                <label className="block font-mono font-bold text-[10px] uppercase text-muted-foreground mb-1">Metode Uang</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditPaymentMethod("TUNAI")}
+                    className={`py-2 border-2 border-border font-bold font-mono text-xs uppercase transition-all cursor-pointer ${
+                      editPaymentMethod === "TUNAI"
+                        ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] border-amber-500"
+                        : "bg-background hover:bg-muted text-foreground"
+                    }`}
+                  >
+                    💵 Tunai
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditPaymentMethod("NON_TUNAI")}
+                    className={`py-2 border-2 border-border font-bold font-mono text-xs uppercase transition-all cursor-pointer ${
+                      editPaymentMethod === "NON_TUNAI"
+                        ? "bg-teal-500/10 text-teal-700 dark:text-teal-400 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] border-teal-500"
+                        : "bg-background hover:bg-muted text-foreground"
+                    }`}
+                  >
+                    💳 Non-Tunai
+                  </button>
+                </div>
               </div>
 
               {/* Amount */}

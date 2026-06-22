@@ -54,6 +54,8 @@ interface BudgetVsSpent {
 interface Stats {
   balance: number;
   absoluteBalance: number;
+  balanceTunai: number;
+  balanceNonTunai: number;
   income: number;
   expense: number;
   savings: number;
@@ -640,6 +642,14 @@ export default function ReportsPage() {
                     <td className={`py-2 px-3 text-right font-black ${stats.balance >= 0 ? "text-blue-600" : "text-rose-600"}`}>
                       {formatRupiah(stats.balance)}
                     </td>
+                  </tr>
+                  <tr className="border-b border-border">
+                    <td className="py-2 px-3 font-semibold pl-4">Saldo Tunai Aktif (Cash Balance)</td>
+                    <td className="py-2 px-3 text-right text-amber-600 font-semibold">{formatRupiah(stats.balanceTunai)}</td>
+                  </tr>
+                  <tr className="border-b border-border">
+                    <td className="py-2 px-3 font-semibold pl-4">Saldo Non-Tunai Aktif (Non-Cash Balance)</td>
+                    <td className="py-2 px-3 text-right text-teal-600 font-semibold">{formatRupiah(stats.balanceNonTunai)}</td>
                   </tr>
                   <tr className="border-b border-border">
                     <td className="py-2 px-3 font-bold pl-4">Komitmen Tagihan Berulang Tersisa (Recurring Bills)</td>
