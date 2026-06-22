@@ -61,6 +61,11 @@ export default function FinanceDashboardPage() {
   const [txCategory, setTxCategory] = useState("");
   const [txDescription, setTxDescription] = useState("");
   const [txPaymentMethod, setTxPaymentMethod] = useState("TUNAI");
+
+  // Transfer states
+  const [transferAmount, setTransferAmount] = useState("");
+  const [transferDirection, setTransferDirection] = useState("TUNAI_TO_NON_TUNAI");
+  const [isTransferring, setIsTransferring] = useState(false);
   const getTodayString = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -167,6 +172,41 @@ export default function FinanceDashboardPage() {
       toast.error("Terjadi kesalahan");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleTransfer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amountNum = parseFloat(transferAmount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      toast.error("Nominal alokasi transfer tidak valid");
+      return;
+    }
+
+    setIsTransferring(true);
+    try {
+      const res = await fetch("/api/finance/transfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: amountNum,
+          direction: transferDirection,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Gagal alokasi saldo");
+        return;
+      }
+
+      toast.success("Alokasi saldo berhasil dilakukan!");
+      setTransferAmount("");
+      fetchDashboardData();
+    } catch {
+      toast.error("Terjadi kesalahan sistem");
+    } finally {
+      setIsTransferring(false);
     }
   };
 
@@ -545,6 +585,50 @@ export default function FinanceDashboardPage() {
                     </span>
                   </Link>
                 </div>
+              </div>
+
+              {/* ALOKASI SALDO (TRANSFER) CARD */}
+              <div className="border-2 border-border bg-card p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] mt-6">
+                <div className="border-b border-border/20 pb-3 mb-5">
+                  <h3 className="font-mono font-extrabold text-sm uppercase tracking-tight">🔁 Alokasi Uang (Transfer)</h3>
+                  <p className="text-[10px] text-muted-foreground font-mono mt-1">Pindahkan dana antara Tunai & Non-Tunai tanpa mengubah total saldo.</p>
+                </div>
+                <form onSubmit={handleTransfer} className="space-y-4">
+                  {/* Direction Selector */}
+                  <div>
+                    <label className="block font-mono font-bold text-[10px] uppercase text-muted-foreground mb-1">Arah Alokasi</label>
+                    <select
+                      value={transferDirection}
+                      onChange={(e) => setTransferDirection(e.target.value)}
+                      className="w-full border-2 border-border bg-background p-2.5 font-mono font-bold text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] focus:outline-none"
+                    >
+                      <option value="TUNAI_TO_NON_TUNAI">Tunai 💵 ➔ Non-Tunai 💳</option>
+                      <option value="NON_TUNAI_TO_TUNAI">Non-Tunai 💳 ➔ Tunai 💵</option>
+                    </select>
+                  </div>
+
+                  {/* Amount */}
+                  <div>
+                    <label className="block font-mono font-bold text-[10px] uppercase text-muted-foreground mb-1">Nominal Transfer (Rp)</label>
+                    <input
+                      type="number"
+                      required
+                      placeholder="Contoh: 50000"
+                      value={transferAmount}
+                      onChange={(e) => setTransferAmount(e.target.value)}
+                      className="w-full border-2 border-border bg-background p-2.5 font-mono text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Submit */}
+                  <button
+                    type="submit"
+                    disabled={isTransferring}
+                    className="w-full py-3 border-2 border-border bg-purple-600 text-white font-mono font-bold text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-[1px] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,1)] transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {isTransferring ? "Memproses..." : "Lakukan Alokasi"}
+                  </button>
+                </form>
               </div>
             </div>
           </>
